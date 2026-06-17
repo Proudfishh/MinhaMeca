@@ -7,7 +7,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="bg-surface min-h-screen flex" x-data="{ sidebarOpen: true }">
+<body class="bg-surface min-h-screen flex" x-data="{ sidebarOpen: false }">
 
     {{-- ====================== SIDEBAR ====================== --}}
     <aside
