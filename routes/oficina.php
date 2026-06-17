@@ -14,6 +14,7 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
 
     Route::get('/os', [OsController::class, 'index'])->name('os.index');
     Route::get('/os/nova', [OsController::class, 'create'])->name('os.create');
+    Route::post('/os', [OsController::class, 'store'])->name('os.store');
     Route::get('/os/{id}', [OsController::class, 'show'])->name('os.show');
 
     Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
