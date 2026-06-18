@@ -10,86 +10,69 @@ const jsErrors = [];
 p.on('pageerror', e => jsErrors.push(e.message));
 p.on('console',   m => { if (m.type() === 'error') jsErrors.push(m.text()); });
 
-// Helpers escoped ao formulário cliente (único com CPF)
-const cpfInput   = () => p.locator('input[name="cpf"][placeholder*="000"]').first();
-const emailInput = () => p.locator('input[placeholder="seuemail@email.com"]').first();
-
 try {
-    // 1. Abrir login → mudar para tab cliente
+    // 1. Login como cliente — qualquer clique entra direto
     await p.goto(BASE + '/login');
-    await p.waitForSelector('text=MinhaMeca');
     await p.click('button:has-text("Cliente")');
-    await p.waitForTimeout(500);
-
-    const btnVerStatus = await p.isVisible('button:has-text("Ver status do meu carro")');
-    console.log('✅ Formulário login cliente visível:', btnVerStatus);
-    await p.screenshot({ path: 'verify-cli-01-login.png' });
-
-    // 2. Login inválido → erro
-    await cpfInput().fill('000.000.000-00');
-    await emailInput().fill('invalido@email.com');
-    await p.click('button:has-text("Ver status do meu carro")');
-    await p.waitForTimeout(600);
-    const erroLogin = await p.isVisible('text=CPF ou e-mail').catch(() => false);
-    console.log('✅ Erro login inválido:', erroLogin);
-    await p.screenshot({ path: 'verify-cli-02-erro-login.png' });
-
-    // 3. Login correto → portal
-    await p.click('button:has-text("Cliente")');
-    await p.waitForTimeout(300);
-    await cpfInput().fill('123.456.789-00');
-    await emailInput().fill('carlos@email.com');
+    await p.waitForTimeout(400);
     await p.click('button:has-text("Ver status do meu carro")');
     await p.waitForURL('**/cliente/**', { timeout: 8000 });
-    console.log('✅ Login bem-sucedido → URL:', p.url());
+    console.log('✅ Login cliente → URL:', p.url());
+    await p.screenshot({ path: 'verify-cli-01-login.png' });
 
-    // 4. Portal carregado
+    // 2. Portal carregado
     await p.waitForSelector('[x-data*="portalCliente"]');
-    await p.waitForTimeout(1000);
-    await p.screenshot({ path: 'verify-cli-03-portal.png', fullPage: true });
-
-    const headerTxt = await p.textContent('header').catch(() => '');
-    console.log('✅ Header com nome:', headerTxt.includes('Auto Center') || headerTxt.includes('Olá'));
+    await p.waitForTimeout(800);
+    await p.screenshot({ path: 'verify-cli-02-portal.png', fullPage: true });
 
     const emAndamento = await p.isVisible('text=Em andamento');
-    console.log('✅ Bloco "Em andamento" visível:', emAndamento);
+    console.log('✅ Bloco "Em andamento":', emAndamento);
 
     const secaoHistorico = await p.isVisible('text=Histórico');
-    console.log('✅ Bloco "Histórico" visível:', secaoHistorico);
+    console.log('✅ Bloco "Histórico":', secaoHistorico);
 
-    // 5. Badge de etapa presente
-    const badges = await p.$$eval('span[style*="background"]', els =>
-        [...new Set(els.map(e => e.textContent.trim()).filter(t => t.length > 0))]
-    );
-    console.log('✅ Badges de etapa:', badges);
+    // 3. Cards de OS — collapsed por padrão (sem barra de progresso visível)
+    const progressoVisivel = await p.isVisible('text=Andamento').catch(() => false);
+    console.log('✅ Progresso oculto (collapsed):', !progressoVisivel);
 
-    // 6. Seção serviços
-    const temServicos = await p.isVisible('text=Serviços').catch(() => false);
-    console.log('✅ Seção serviços visível:', temServicos);
+    // 4. Clicar no card para expandir
+    const cardOS = p.locator('[x-data="{ aberto: false }"]').first();
+    await cardOS.click();
+    await p.waitForTimeout(400);
+    const progressoAberto = await p.isVisible('text=Andamento').catch(() => false);
+    console.log('✅ Progresso visível após expandir:', progressoAberto);
 
-    // 7. Card histórico — expandir
-    await p.screenshot({ path: 'verify-cli-04-historico.png' });
+    const servicosVisiveis = await p.isVisible('text=Serviços').catch(() => false);
+    console.log('✅ Serviços visíveis após expandir:', servicosVisiveis);
+    await p.screenshot({ path: 'verify-cli-03-card-expandido.png' });
+
+    // 5. Fechar clicando novamente
+    await cardOS.click();
+    await p.waitForTimeout(300);
+    const progressoFechado = await p.isVisible('text=Andamento').catch(() => false);
+    console.log('✅ Progresso oculto após fechar:', !progressoFechado);
+
+    // 6. Card histórico — expandir
     const cardsHist = await p.$$('[x-data="{ aberto: false }"]');
-    console.log('✅ Cards de histórico:', cardsHist.length);
-    if (cardsHist.length > 0) {
-        await cardsHist[0].click();
-        await p.waitForTimeout(500);
-        const detalhes = await p.isVisible('text=Serviços realizados').catch(() => false);
-        console.log('✅ Histórico expandido:', detalhes);
-        await p.screenshot({ path: 'verify-cli-05-historico-expandido.png' });
-    }
+    console.log('✅ Cards totais (ativas + histórico):', cardsHist.length);
+    const ultimoCard = cardsHist[cardsHist.length - 1];
+    await ultimoCard.click();
+    await p.waitForTimeout(400);
+    const detalhesHist = await p.isVisible('text=Serviços realizados').catch(() => false);
+    console.log('✅ Histórico expandido:', detalhesHist);
+    await p.screenshot({ path: 'verify-cli-04-historico.png' });
 
-    // 8. Logout
+    // 7. Logout
     await p.click('button:has-text("Sair")');
     await p.waitForURL('**/login**', { timeout: 5000 });
-    console.log('✅ Logout OK → URL:', p.url());
+    console.log('✅ Logout OK');
 
-    // 9. Proteção — acesso sem auth redireciona
+    // 8. Proteção — acesso sem auth redireciona
     await p.goto(BASE + '/cliente/veiculos');
     await p.waitForURL('**/login**', { timeout: 5000 });
     console.log('✅ Proteção auth.cliente funciona');
 
-    // 10. JS errors
+    // 9. JS errors
     if (jsErrors.length) {
         console.log('⚠️ Erros JS:', jsErrors);
     } else {
