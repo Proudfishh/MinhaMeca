@@ -7,6 +7,7 @@ use App\Http\Controllers\Oficina\ClienteController;
 use App\Http\Controllers\Oficina\VeiculoController;
 use App\Http\Controllers\Oficina\EstoqueController;
 use App\Http\Controllers\Oficina\FinanceiroController;
+use App\Http\Controllers\Oficina\GarantiaController;
 use App\Http\Controllers\Oficina\ConfiguracoesController;
 
 Route::middleware(['auth.oficina', 'tenant'])->group(function () {
@@ -26,6 +27,8 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 
     Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
+
+    Route::get('/garantias', [GarantiaController::class, 'index'])->name('garantias.index');
 
     Route::get('/configuracoes', [ConfiguracoesController::class, 'index'])->name('configuracoes.index');
 });

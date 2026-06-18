@@ -42,6 +42,48 @@ class MockOsService
     {
         return [
             [
+                'id'                  => 'OS-2025-0035',
+                'tenant_id'           => 1,
+                'cliente_id'          => 1,
+                'veiculo_id'          => 1,
+                'cliente'             => 'Carlos Henrique Souza',
+                'veiculo'             => 'Honda Civic 2019 · Prata · ABC-1234',
+                'etapa_atual'         => 'finalizacao',
+                'mecanico'            => 'Marcos Ferreira',
+                'data_entrada'        => '2025-04-22',
+                'previsao_entrega'    => '2025-04-25',
+                'data_entrega_real'   => '2025-04-26',
+                'descricao_cliente'   => 'Revisão geral e troca de óleo.',
+                'servicos'            => [
+                    ['descricao' => 'Revisão completa', 'valor' => 320.00, 'status' => 'concluido'],
+                    ['descricao' => 'Troca de óleo',    'valor' => 95.00,  'status' => 'concluido'],
+                    ['descricao' => 'Troca de filtros', 'valor' => 85.00,  'status' => 'concluido'],
+                ],
+                'total'               => 500.00,
+                'etapa_checkin'       => ['checklist' => ['Lataria OK', 'Vidros OK', 'Pneus OK'], 'fotos' => [], 'observacao' => ''],
+                'etapa_diagnostico'   => ['descricao' => 'Revisão de rotina. Sem anomalias.'],
+                'etapa_pecas'         => ['aprovado' => true, 'aprovado_em' => '2025-04-22 14:00', 'itens' => [
+                    ['descricao' => 'Óleo motor 5W30 (4L)', 'origem' => 'estoque', 'qtd' => 1, 'valor' => 65.00],
+                    ['descricao' => 'Kit filtros Civic',    'origem' => 'estoque', 'qtd' => 1, 'valor' => 75.00],
+                ]],
+                'etapa_servico'       => ['logs' => [
+                    ['hora' => '2025-04-23 08:00', 'descricao' => 'Revisão iniciada.'],
+                    ['hora' => '2025-04-23 16:00', 'descricao' => 'Todos os serviços concluídos.'],
+                ]],
+                'etapa_finalizacao'   => [
+                    'checklist_saida' => ['Motor OK', 'Óleo OK', 'Filtros OK'],
+                    'observacoes'     => 'Veículo entregue em perfeitas condições.',
+                    'fotos'           => [],
+                ],
+                'historico_transicoes' => [
+                    ['de' => 'checkin',     'para' => 'diagnostico', 'em' => '2025-04-22 09:00', 'responsavel' => 'Marcos Ferreira'],
+                    ['de' => 'diagnostico', 'para' => 'pecas',       'em' => '2025-04-22 11:00', 'responsavel' => 'Marcos Ferreira'],
+                    ['de' => 'pecas',       'para' => 'servico',     'em' => '2025-04-23 08:00', 'responsavel' => 'Marcos Ferreira'],
+                    ['de' => 'servico',     'para' => 'testes',      'em' => '2025-04-23 16:00', 'responsavel' => 'Marcos Ferreira'],
+                    ['de' => 'testes',      'para' => 'finalizacao', 'em' => '2025-04-24 10:00', 'responsavel' => 'Marcos Ferreira'],
+                ],
+            ],
+            [
                 'id'                  => 'OS-2025-0047',
                 'tenant_id'           => 1,
                 'cliente_id'          => 1,

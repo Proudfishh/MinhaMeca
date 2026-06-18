@@ -22,10 +22,12 @@ class MockClienteService
 
         if (! $cliente) return null;
 
+        $nomes = [1 => 'Auto Center Premium', 2 => 'Oficina do Zé', 3 => 'MecaRápida Express'];
+
         $oficinas = collect($this->data())
             ->where('cpf', $cpf)
             ->where('email', $email)
-            ->map(fn ($c) => ['id' => $c['tenant_id'], 'nome' => 'Oficina #'.$c['tenant_id']])
+            ->map(fn ($c) => ['id' => $c['tenant_id'], 'nome' => $nomes[$c['tenant_id']] ?? 'Oficina #'.$c['tenant_id']])
             ->values()
             ->all();
 

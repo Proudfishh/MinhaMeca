@@ -197,16 +197,86 @@
         {{-- PORTAL: CLIENTE --}}
         {{-- ============================================================ --}}
         <div x-show="portal === 'cliente'"
+             x-data="{ tabC: 'entrar' }"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0 translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0">
 
-            <p class="text-muted text-sm mb-6 leading-relaxed">
-                Acompanhe o status do seu veículo em tempo real.
-            </p>
+            {{-- Sub-tabs --}}
+            <div class="flex gap-5 mb-6" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <button
+                    @click="tabC = 'entrar'"
+                    :class="tabC === 'entrar' ? 'text-white border-b-2 border-spark' : 'text-muted hover:text-white/70'"
+                    class="text-sm font-medium pb-3 -mb-px transition-colors"
+                >Entrar</button>
+                <button
+                    @click="tabC = 'criar'"
+                    :class="tabC === 'criar' ? 'text-white border-b-2 border-spark' : 'text-muted hover:text-white/70'"
+                    class="text-sm font-medium pb-3 -mb-px transition-colors"
+                >Criar conta</button>
+                <button
+                    @click="tabC = 'senha'"
+                    :class="tabC === 'senha' ? 'text-white border-b-2 border-spark' : 'text-muted hover:text-white/70'"
+                    class="text-sm font-medium pb-3 -mb-px transition-colors"
+                >Esqueci a senha</button>
+            </div>
 
-            <form action="{{ route('login.cliente') }}" method="POST" class="space-y-4">
+            {{-- Tab: Entrar --}}
+            <form x-show="tabC === 'entrar'"
+                  action="{{ route('login.cliente') }}" method="POST"
+                  class="space-y-4">
                 @csrf
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">CPF</label>
+                    <input
+                        type="text" name="cpf"
+                        value="{{ old('cpf') }}"
+                        placeholder="000.000.000-00"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm font-mono placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">Email</label>
+                    <input
+                        type="email" name="email"
+                        value="{{ old('email') }}"
+                        placeholder="seuemail@email.com"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
+
+                @error('cpf')
+                    <p class="text-red-400 text-xs">{{ $message }}</p>
+                @enderror
+
+                <button type="submit"
+                        class="w-full bg-spark hover:bg-blue-500 active:bg-blue-700 text-white font-medium rounded-lg py-3 text-sm transition-colors mt-1">
+                    Ver status do meu carro
+                </button>
+            </form>
+
+            {{-- Tab: Criar conta --}}
+            <form x-show="tabC === 'criar'"
+                  action="#" method="POST"
+                  class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">Nome completo</label>
+                    <input
+                        type="text" name="nome"
+                        placeholder="Seu nome"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
                 <div>
                     <label class="block text-xs text-muted mb-1.5 tracking-wide">CPF</label>
                     <input
@@ -229,14 +299,56 @@
                         onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
                     >
                 </div>
-
-                @error('cpf')
-                    <p class="text-red-400 text-xs">{{ $message }}</p>
-                @enderror
-
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">Senha</label>
+                    <input
+                        type="password" name="password"
+                        placeholder="••••••••"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
                 <button type="submit"
                         class="w-full bg-spark hover:bg-blue-500 active:bg-blue-700 text-white font-medium rounded-lg py-3 text-sm transition-colors mt-1">
-                    Ver status do meu carro
+                    Criar minha conta
+                </button>
+            </form>
+
+            {{-- Tab: Esqueci a senha --}}
+            <form x-show="tabC === 'senha'"
+                  action="#" method="POST"
+                  class="space-y-4">
+                @csrf
+                <p class="text-muted text-sm leading-relaxed">
+                    Informe seu CPF e e-mail para receber as instruções de recuperação.
+                </p>
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">CPF</label>
+                    <input
+                        type="text" name="cpf"
+                        placeholder="000.000.000-00"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm font-mono placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
+                <div>
+                    <label class="block text-xs text-muted mb-1.5 tracking-wide">Email</label>
+                    <input
+                        type="email" name="email"
+                        placeholder="seuemail@email.com"
+                        class="w-full rounded-lg px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-all"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);"
+                        onfocus="this.style.borderColor='#3B82F6'; this.style.background='rgba(59,130,246,0.06)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)'; this.style.background='rgba(255,255,255,0.05)'"
+                    >
+                </div>
+                <button type="submit"
+                        class="w-full bg-spark hover:bg-blue-500 active:bg-blue-700 text-white font-medium rounded-lg py-3 text-sm transition-colors mt-1">
+                    Enviar instruções
                 </button>
             </form>
 
