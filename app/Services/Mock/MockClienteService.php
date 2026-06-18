@@ -17,7 +17,7 @@ class MockClienteService
     public function findByCpfEmail(string $cpf, string $email): ?array
     {
         $cliente = collect($this->data())->first(
-            fn ($c) => $c['cpf'] === $cpf && $c['email'] === $email
+            fn ($c) => ($c['cpf'] ?? '') === $cpf && $c['email'] === $email
         );
 
         if (! $cliente) return null;
@@ -39,34 +39,52 @@ class MockClienteService
             [
                 'id'        => 1,
                 'tenant_id' => 1,
+                'tipo'      => 'pf',
                 'nome'      => 'Carlos Henrique Souza',
                 'cpf'       => '123.456.789-00',
+                'cnpj'      => null,
                 'email'     => 'carlos@email.com',
                 'telefone'  => '(11) 99999-1111',
             ],
             [
                 'id'        => 2,
                 'tenant_id' => 1,
+                'tipo'      => 'pf',
                 'nome'      => 'Ana Paula Ferreira',
                 'cpf'       => '234.567.890-11',
+                'cnpj'      => null,
                 'email'     => 'ana@email.com',
                 'telefone'  => '(11) 99999-2222',
             ],
             [
                 'id'        => 3,
                 'tenant_id' => 1,
+                'tipo'      => 'pf',
                 'nome'      => 'Roberto Alves Lima',
                 'cpf'       => '345.678.901-22',
+                'cnpj'      => null,
                 'email'     => 'roberto@email.com',
                 'telefone'  => '(11) 99999-3333',
             ],
             [
                 'id'        => 4,
                 'tenant_id' => 2,
+                'tipo'      => 'pf',
                 'nome'      => 'Fernanda Costa',
                 'cpf'       => '456.789.012-33',
+                'cnpj'      => null,
                 'email'     => 'fernanda@email.com',
                 'telefone'  => '(19) 99999-4444',
+            ],
+            [
+                'id'        => 5,
+                'tenant_id' => 1,
+                'tipo'      => 'pj',
+                'nome'      => 'Auto Peças Ltda',
+                'cpf'       => null,
+                'cnpj'      => '12.345.678/0001-99',
+                'email'     => 'contato@autopecas.com.br',
+                'telefone'  => '(11) 3333-4444',
             ],
         ];
     }

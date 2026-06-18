@@ -14,7 +14,7 @@
 </div>
 
 {{-- ===== WIZARD ===== --}}
-<div x-data="novaOs(@json($clientes), @json($veiculos))" class="max-w-2xl mx-auto">
+<div x-data="novaOs()" class="max-w-2xl mx-auto">
 
     <form action="{{ route('oficina.os.store') }}" method="POST" id="form-nova-os">
         @csrf
@@ -23,7 +23,9 @@
         <input type="hidden" name="cliente_modo"         :value="clienteMode">
         <input type="hidden" name="cliente_id"           :value="clienteSelecionado?.id ?? ''">
         <input type="hidden" name="cliente_nome_novo"    :value="novoCliente.nome">
+        <input type="hidden" name="cliente_tipo"         :value="novoCliente.tipo">
         <input type="hidden" name="cliente_cpf_novo"     :value="novoCliente.cpf">
+        <input type="hidden" name="cliente_cnpj_novo"    :value="novoCliente.cnpj">
         <input type="hidden" name="cliente_telefone_novo":value="novoCliente.telefone">
         <input type="hidden" name="cliente_email_novo"   :value="novoCliente.email">
         <input type="hidden" name="veiculo_modo"         :value="veiculoMode">
@@ -165,27 +167,69 @@
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0">
+
+                    {{-- Toggle PF / PJ --}}
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" @click="novoCliente.tipo = 'pf'"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                                :class="novoCliente.tipo === 'pf'
+                                    ? 'bg-spark text-white border-spark'
+                                    : 'bg-white text-muted border-border hover:border-spark/40 hover:text-void'">
+                            PF — Pessoa Física
+                        </button>
+                        <button type="button" @click="novoCliente.tipo = 'pj'"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                                :class="novoCliente.tipo === 'pj'
+                                    ? 'bg-spark text-white border-spark'
+                                    : 'bg-white text-muted border-border hover:border-spark/40 hover:text-void'">
+                            PJ — Pessoa Jurídica
+                        </button>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="sm:col-span-2">
+
+                        {{-- PF: Nome completo --}}
+                        <div class="sm:col-span-2" x-show="novoCliente.tipo === 'pf'">
                             <label class="block text-xs font-medium text-muted mb-1.5">Nome completo <span class="text-spark">*</span></label>
                             <input type="text" x-model="novoCliente.nome" placeholder="Ex: João da Silva"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
-                        <div>
+
+                        {{-- PJ: Razão Social --}}
+                        <div class="sm:col-span-2" x-show="novoCliente.tipo === 'pj'">
+                            <label class="block text-xs font-medium text-muted mb-1.5">Razão Social <span class="text-spark">*</span></label>
+                            <input type="text" x-model="novoCliente.nome" placeholder="Ex: Auto Peças Ltda"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                        </div>
+
+                        {{-- PF: CPF --}}
+                        <div x-show="novoCliente.tipo === 'pf'">
                             <label class="block text-xs font-medium text-muted mb-1.5">CPF <span class="text-spark">*</span></label>
                             <input type="text" x-model="novoCliente.cpf" placeholder="000.000.000-00"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
+
+                        {{-- PJ: CNPJ --}}
+                        <div x-show="novoCliente.tipo === 'pj'">
+                            <label class="block text-xs font-medium text-muted mb-1.5">CNPJ <span class="text-spark">*</span></label>
+                            <input type="text" x-model="novoCliente.cnpj" placeholder="00.000.000/0000-00"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                        </div>
+
+                        {{-- Telefone (comum) --}}
                         <div>
                             <label class="block text-xs font-medium text-muted mb-1.5">Telefone <span class="text-spark">*</span></label>
                             <input type="text" x-model="novoCliente.telefone" placeholder="(00) 00000-0000"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
-                        <div class="sm:col-span-2">
+
+                        {{-- E-mail (apenas PF) --}}
+                        <div class="sm:col-span-2" x-show="novoCliente.tipo === 'pf'">
                             <label class="block text-xs font-medium text-muted mb-1.5">E-mail</label>
                             <input type="email" x-model="novoCliente.email" placeholder="email@exemplo.com"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
+
                     </div>
                 </div>
 
@@ -475,17 +519,17 @@
 </div>{{-- /wizard --}}
 
 <script>
-function novaOs(clientes, veiculos) {
+function novaOs() {
     return {
         step: 1,
         stepLabels: ['Cliente', 'Veículo', 'Problema'],
-        clientes: clientes,
-        veiculos: veiculos,
+        clientes: {!! json_encode($clientes, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
+        veiculos: {!! json_encode($veiculos, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
 
         clienteMode: '',
         clienteBusca: '',
         clienteSelecionado: null,
-        novoCliente: { nome: '', cpf: '', telefone: '', email: '' },
+        novoCliente: { tipo: 'pf', nome: '', cpf: '', cnpj: '', telefone: '', email: '' },
 
         veiculoMode: '',
         veiculoBusca: '',
@@ -565,8 +609,11 @@ function novaOs(clientes, veiculos) {
                 if (this.clienteMode === 'sem') return true;
                 if (this.clienteMode === 'existente') return this.clienteSelecionado !== null;
                 if (this.clienteMode === 'novo') {
+                    const doc = this.novoCliente.tipo === 'pj'
+                        ? this.novoCliente.cnpj.trim() !== ''
+                        : this.novoCliente.cpf.trim() !== '';
                     return this.novoCliente.nome.trim() !== '' &&
-                           this.novoCliente.cpf.trim() !== '' &&
+                           doc &&
                            this.novoCliente.telefone.trim() !== '';
                 }
             }
