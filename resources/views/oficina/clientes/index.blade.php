@@ -4,7 +4,7 @@
         window.__clientes = {!! json_encode($clientes, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
     </script>
 
-    <div x-data="clientesIndex()" x-init="init()">
+    <div x-data="clientesIndex()" x-init="init()" @keydown.escape.window="fecharModal()">
 
         {{-- ==================== HEADER ==================== --}}
         <div class="flex items-center justify-between mb-6">
@@ -14,7 +14,7 @@
                       x-text="clientes.length"></span>
             </div>
             <button type="button"
-                    onclick="alert('Fase 1 — cadastro de clientes em breve')"
+                    @click="abrirModal()"
                     class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -46,7 +46,7 @@
                 </div>
                 <p class="font-display font-semibold text-void text-base mb-1">Nenhum cliente cadastrado ainda.</p>
                 <button type="button"
-                        onclick="alert('Fase 1 — cadastro de clientes em breve')"
+                        @click="abrirModal()"
                         class="mt-3 text-spark text-sm font-medium hover:underline">
                     + Cadastrar primeiro cliente
                 </button>
@@ -100,22 +100,18 @@
                                     </p>
 
                                     <div class="flex items-center gap-3 flex-wrap">
-                                        {{-- Badge OS ativa --}}
                                         <template x-if="cliente.os_ativa">
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white"
                                                   :style="'background:' + etapasCor[cliente.os_ativa.etapa_atual]"
                                                   x-text="etapasLabel[cliente.os_ativa.etapa_atual]">
                                             </span>
                                         </template>
-
-                                        {{-- Total OS --}}
                                         <span class="text-[11px] text-muted"
-                                              x-text="cliente.total_os + (cliente.total_os === 1 ? ' OS' : ' OS')">
+                                              x-text="cliente.total_os + ' OS'">
                                         </span>
                                     </div>
                                 </div>
 
-                                {{-- Seta --}}
                                 <svg class="w-4 h-4 text-muted group-hover:text-ocean transition-colors flex-shrink-0 mt-0.5"
                                      fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -123,6 +119,139 @@
                             </div>
                         </a>
                     </template>
+                </div>
+            </div>
+        </template>
+
+        {{-- ==================== TOAST ==================== --}}
+        <div x-show="toastVisible"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-2"
+             class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-void text-white text-sm font-medium"
+             style="pointer-events:none;">
+            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span x-text="toastMsg"></span>
+        </div>
+
+        {{-- ==================== MODAL NOVO CLIENTE ==================== --}}
+        <template x-teleport="body">
+            <div x-show="modalAberto"
+                 class="fixed inset-0 z-40 flex items-center justify-center p-4"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+
+                {{-- Backdrop --}}
+                <div class="absolute inset-0 bg-void/50" @click="fecharModal()"></div>
+
+                {{-- Painel --}}
+                <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                     @click.stop>
+
+                    {{-- Header do modal --}}
+                    <div class="flex items-center justify-between px-6 py-4"
+                         style="border-bottom: 1px solid var(--color-border);">
+                        <h3 class="font-display font-semibold text-void text-base">Novo Cliente</h3>
+                        <button type="button" @click="fecharModal()"
+                                class="text-muted hover:text-void transition-colors rounded-lg p-1 hover:bg-surface">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Body do modal --}}
+                    <div class="px-6 py-5 space-y-4">
+
+                        {{-- Toggle PF / PJ --}}
+                        <div class="flex gap-2">
+                            <button type="button" @click="form.tipo = 'pf'"
+                                    class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                                    :class="form.tipo === 'pf'
+                                        ? 'bg-spark text-white border-spark'
+                                        : 'bg-white text-muted border-border hover:border-spark/40 hover:text-void'">
+                                PF — Pessoa Física
+                            </button>
+                            <button type="button" @click="form.tipo = 'pj'"
+                                    class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                                    :class="form.tipo === 'pj'
+                                        ? 'bg-spark text-white border-spark'
+                                        : 'bg-white text-muted border-border hover:border-spark/40 hover:text-void'">
+                                PJ — Pessoa Jurídica
+                            </button>
+                        </div>
+
+                        {{-- Nome / Razão Social --}}
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1.5">
+                                <span x-text="form.tipo === 'pj' ? 'Razão Social' : 'Nome completo'"></span>
+                                <span class="text-spark">*</span>
+                            </label>
+                            <input type="text" x-model="form.nome"
+                                   :placeholder="form.tipo === 'pj' ? 'Ex: Auto Peças Ltda' : 'Ex: João da Silva'"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                        </div>
+
+                        {{-- CPF ou CNPJ --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div x-show="form.tipo === 'pf'">
+                                <label class="block text-xs font-medium text-muted mb-1.5">CPF <span class="text-spark">*</span></label>
+                                <input type="text" x-model="form.cpf" placeholder="000.000.000-00"
+                                       class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                            </div>
+                            <div x-show="form.tipo === 'pj'">
+                                <label class="block text-xs font-medium text-muted mb-1.5">CNPJ <span class="text-spark">*</span></label>
+                                <input type="text" x-model="form.cnpj" placeholder="00.000.000/0000-00"
+                                       class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1.5">Telefone <span class="text-spark">*</span></label>
+                                <input type="text" x-model="form.telefone" placeholder="(00) 00000-0000"
+                                       class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                            </div>
+                        </div>
+
+                        {{-- E-mail --}}
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1.5">E-mail</label>
+                            <input type="email" x-model="form.email" placeholder="email@exemplo.com"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                        </div>
+
+                    </div>
+
+                    {{-- Footer do modal --}}
+                    <div class="flex items-center justify-end gap-3 px-6 py-4"
+                         style="border-top: 1px solid var(--color-border);">
+                        <button type="button" @click="fecharModal()"
+                                class="px-4 py-2 rounded-lg border border-border text-void text-sm font-medium hover:bg-surface transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="button" @click="salvarCliente()"
+                                :disabled="!formValido"
+                                :class="formValido
+                                    ? 'bg-spark text-white hover:bg-spark/90 cursor-pointer'
+                                    : 'bg-border text-muted cursor-not-allowed'"
+                                class="px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Cadastrar
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </template>
@@ -136,6 +265,20 @@
                 clientes: [],
                 etapasCor: {},
                 etapasLabel: {},
+
+                modalAberto: false,
+                toastVisible: false,
+                toastMsg: '',
+                _toastTimer: null,
+
+                form: {
+                    tipo: 'pf',
+                    nome: '',
+                    cpf: '',
+                    cnpj: '',
+                    telefone: '',
+                    email: '',
+                },
 
                 init() {
                     this.clientes = window.__clientes || [];
@@ -162,10 +305,53 @@
                     const q = this.busca.toLowerCase();
                     return this.clientes.filter(c =>
                         c.nome.toLowerCase().includes(q) ||
-                        (c.cpf  && c.cpf.includes(q))  ||
-                        (c.cnpj && c.cnpj.includes(q)) ||
+                        (c.cpf  && c.cpf.includes(q))   ||
+                        (c.cnpj && c.cnpj.includes(q))  ||
                         c.telefone.includes(q)
                     );
+                },
+
+                get formValido() {
+                    if (!this.form.nome.trim() || !this.form.telefone.trim()) return false;
+                    if (this.form.tipo === 'pf') return this.form.cpf.trim() !== '';
+                    return this.form.cnpj.trim() !== '';
+                },
+
+                abrirModal() {
+                    this.form = { tipo: 'pf', nome: '', cpf: '', cnpj: '', telefone: '', email: '' };
+                    this.modalAberto = true;
+                },
+
+                fecharModal() {
+                    this.modalAberto = false;
+                },
+
+                salvarCliente() {
+                    if (!this.formValido) return;
+
+                    const novoId = Date.now();
+                    this.clientes.push({
+                        id:             novoId,
+                        tipo:           this.form.tipo,
+                        nome:           this.form.nome.trim(),
+                        cpf:            this.form.tipo === 'pf' ? this.form.cpf.trim() : null,
+                        cnpj:           this.form.tipo === 'pj' ? this.form.cnpj.trim() : null,
+                        telefone:       this.form.telefone.trim(),
+                        email:          this.form.email.trim() || null,
+                        total_os:       0,
+                        os_ativa:       null,
+                        total_veiculos: 0,
+                    });
+
+                    this.fecharModal();
+                    this.mostrarToast('Cliente cadastrado com sucesso!');
+                },
+
+                mostrarToast(msg) {
+                    this.toastMsg = msg;
+                    this.toastVisible = true;
+                    clearTimeout(this._toastTimer);
+                    this._toastTimer = setTimeout(() => { this.toastVisible = false; }, 3000);
                 },
 
                 initiais(nome) {
