@@ -233,6 +233,78 @@
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
 
+                        {{-- Toggle Informações adicionais --}}
+                        <div class="pt-1" style="border-top: 1px solid var(--color-border);">
+                            <button type="button" @click="mostrarAdicionais = !mostrarAdicionais"
+                                    class="flex items-center gap-1.5 text-xs font-medium text-muted hover:text-void transition-colors py-1">
+                                <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                                     :class="mostrarAdicionais ? 'rotate-90' : ''"
+                                     fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                                Informações adicionais
+                                <span class="text-[10px] font-normal text-muted/70">(opcional)</span>
+                            </button>
+                        </div>
+
+                        {{-- Campos adicionais --}}
+                        <div x-show="mostrarAdicionais"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="space-y-3">
+
+                            {{-- Nome do contato — só PJ --}}
+                            <div x-show="form.tipo === 'pj'">
+                                <label class="block text-xs font-medium text-muted mb-1.5">Nome do contato responsável</label>
+                                <input type="text" x-model="form.nome_contato" placeholder="Ex: João Silva"
+                                       class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                            </div>
+
+                            {{-- Endereço --}}
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="col-span-1">
+                                    <label class="block text-xs font-medium text-muted mb-1.5">CEP</label>
+                                    <input type="text" x-model="form.cep" placeholder="00000-000"
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-muted mb-1.5">Logradouro</label>
+                                    <input type="text" x-model="form.logradouro" placeholder="Rua, Av., Travessa..."
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-muted mb-1.5">Número</label>
+                                    <input type="text" x-model="form.numero" placeholder="123"
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-muted mb-1.5">Complemento</label>
+                                    <input type="text" x-model="form.complemento" placeholder="Apto, Sala, Bloco..."
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-5 gap-3">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-muted mb-1.5">Bairro</label>
+                                    <input type="text" x-model="form.bairro" placeholder="Bairro"
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-muted mb-1.5">Cidade</label>
+                                    <input type="text" x-model="form.cidade" placeholder="Cidade"
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-muted mb-1.5">UF</label>
+                                    <input type="text" x-model="form.uf" placeholder="SP" maxlength="2"
+                                           class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors uppercase">
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     {{-- Footer do modal --}}
@@ -267,6 +339,7 @@
                 etapasLabel: {},
 
                 modalAberto: false,
+                mostrarAdicionais: false,
                 toastVisible: false,
                 toastMsg: '',
                 _toastTimer: null,
@@ -278,6 +351,14 @@
                     cnpj: '',
                     telefone: '',
                     email: '',
+                    nome_contato: '',
+                    cep: '',
+                    logradouro: '',
+                    numero: '',
+                    complemento: '',
+                    bairro: '',
+                    cidade: '',
+                    uf: '',
                 },
 
                 init() {
@@ -318,7 +399,12 @@
                 },
 
                 abrirModal() {
-                    this.form = { tipo: 'pf', nome: '', cpf: '', cnpj: '', telefone: '', email: '' };
+                    this.form = {
+                        tipo: 'pf', nome: '', cpf: '', cnpj: '', telefone: '', email: '',
+                        nome_contato: '', cep: '', logradouro: '', numero: '',
+                        complemento: '', bairro: '', cidade: '', uf: '',
+                    };
+                    this.mostrarAdicionais = false;
                     this.modalAberto = true;
                 },
 
@@ -336,8 +422,16 @@
                         nome:           this.form.nome.trim(),
                         cpf:            this.form.tipo === 'pf' ? this.form.cpf.trim() : null,
                         cnpj:           this.form.tipo === 'pj' ? this.form.cnpj.trim() : null,
+                        nome_contato:   this.form.nome_contato.trim() || null,
                         telefone:       this.form.telefone.trim(),
                         email:          this.form.email.trim() || null,
+                        cep:            this.form.cep.trim() || null,
+                        logradouro:     this.form.logradouro.trim() || null,
+                        numero:         this.form.numero.trim() || null,
+                        complemento:    this.form.complemento.trim() || null,
+                        bairro:         this.form.bairro.trim() || null,
+                        cidade:         this.form.cidade.trim() || null,
+                        uf:             this.form.uf.trim().toUpperCase() || null,
                         total_os:       0,
                         os_ativa:       null,
                         total_veiculos: 0,

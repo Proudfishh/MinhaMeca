@@ -99,46 +99,87 @@
             </div>
 
             {{-- ======= ABA: DADOS ======= --}}
-            <div x-show="tab === 'dados'" class="p-5 sm:p-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+            <div x-show="tab === 'dados'" class="p-5 sm:p-6 space-y-6">
 
-                    <template x-if="cliente.tipo === 'pf'">
-                        <div class="contents">
-                            <div>
-                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Nome completo</p>
-                                <p class="text-sm text-void font-medium" x-text="cliente.nome"></p>
+                {{-- Dados principais --}}
+                <div>
+                    <p class="text-[10px] font-semibold text-muted uppercase tracking-widest mb-4">Dados principais</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+
+                        <template x-if="cliente.tipo === 'pf'">
+                            <div class="contents">
+                                <div>
+                                    <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Nome completo</p>
+                                    <p class="text-sm text-void font-medium" x-text="cliente.nome"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">CPF</p>
+                                    <p class="text-sm text-void font-mono" x-text="cliente.cpf"></p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">CPF</p>
-                                <p class="text-sm text-void font-mono" x-text="cliente.cpf"></p>
+                        </template>
+
+                        <template x-if="cliente.tipo === 'pj'">
+                            <div class="contents">
+                                <div>
+                                    <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Razão Social</p>
+                                    <p class="text-sm text-void font-medium" x-text="cliente.nome"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">CNPJ</p>
+                                    <p class="text-sm text-void font-mono" x-text="cliente.cnpj"></p>
+                                </div>
+                                <div x-show="cliente.nome_contato">
+                                    <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Contato responsável</p>
+                                    <p class="text-sm text-void" x-text="cliente.nome_contato"></p>
+                                </div>
                             </div>
+                        </template>
+
+                        <div>
+                            <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Telefone</p>
+                            <p class="text-sm text-void" x-text="cliente.telefone"></p>
                         </div>
-                    </template>
-
-                    <template x-if="cliente.tipo === 'pj'">
-                        <div class="contents">
-                            <div>
-                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Razão Social</p>
-                                <p class="text-sm text-void font-medium" x-text="cliente.nome"></p>
-                            </div>
-                            <div>
-                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">CNPJ</p>
-                                <p class="text-sm text-void font-mono" x-text="cliente.cnpj"></p>
-                            </div>
+                        <div>
+                            <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">E-mail</p>
+                            <p class="text-sm text-void" x-text="cliente.email || '—'"></p>
                         </div>
-                    </template>
-
-                    <div>
-                        <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Telefone</p>
-                        <p class="text-sm text-void" x-text="cliente.telefone"></p>
-                    </div>
-                    <div>
-                        <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">E-mail</p>
-                        <p class="text-sm text-void" x-text="cliente.email || '—'"></p>
                     </div>
                 </div>
 
-                <p class="text-xs text-muted mt-6 pt-4" style="border-top: 1px solid var(--color-border);">
+                {{-- Endereço --}}
+                <div style="border-top: 1px solid var(--color-border); padding-top: 1.25rem;">
+                    <p class="text-[10px] font-semibold text-muted uppercase tracking-widest mb-4">Endereço</p>
+
+                    <template x-if="cliente.logradouro || cliente.cep || cliente.cidade">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4">
+                            <div x-show="cliente.logradouro" class="sm:col-span-2">
+                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Logradouro</p>
+                                <p class="text-sm text-void"
+                                   x-text="cliente.logradouro + (cliente.numero ? ', ' + cliente.numero : '') + (cliente.complemento ? ' — ' + cliente.complemento : '')"></p>
+                            </div>
+                            <div x-show="cliente.cep">
+                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">CEP</p>
+                                <p class="text-sm text-void font-mono" x-text="cliente.cep"></p>
+                            </div>
+                            <div x-show="cliente.bairro">
+                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Bairro</p>
+                                <p class="text-sm text-void" x-text="cliente.bairro"></p>
+                            </div>
+                            <div x-show="cliente.cidade">
+                                <p class="text-[11px] font-medium text-muted uppercase tracking-wide mb-1">Cidade / UF</p>
+                                <p class="text-sm text-void"
+                                   x-text="cliente.cidade + (cliente.uf ? ' — ' + cliente.uf : '')"></p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="!cliente.logradouro && !cliente.cep && !cliente.cidade">
+                        <p class="text-sm text-muted">Endereço não cadastrado.</p>
+                    </template>
+                </div>
+
+                <p class="text-xs text-muted pt-2" style="border-top: 1px solid var(--color-border);">
                     Edição disponível em breve.
                 </p>
             </div>
