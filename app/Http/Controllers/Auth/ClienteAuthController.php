@@ -12,21 +12,11 @@ class ClienteAuthController extends Controller
 
     public function login(Request $request)
     {
-        $cliente = $this->clientes->findByCpfEmail(
-            $request->input('cpf', ''),
-            $request->input('email', '')
+        $this->setarSessao(
+            ['id' => 1, 'nome' => 'Carlos Henrique Souza'],
+            1,
+            'Auto Center Premium'
         );
-
-        if (! $cliente) {
-            return back()->withErrors(['cpf' => 'CPF ou e-mail não encontrado.'])->withInput();
-        }
-
-        if (count($cliente['oficinas']) > 1) {
-            session(['cliente_pendente' => $cliente]);
-            return view('auth.selecionar-oficina', compact('cliente'));
-        }
-
-        $this->setarSessao($cliente, $cliente['oficinas'][0]['id'], $cliente['oficinas'][0]['nome']);
 
         return redirect()->route('cliente.veiculos.index');
     }
