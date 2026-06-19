@@ -45,7 +45,7 @@ class MockGarantiaService
                 'cliente_id'       => 3,
                 'cliente'          => 'Roberto Alves Lima',
                 'veiculo_id'       => 3,
-                'veiculo'          => 'Volkswagen Gol 2018 · Preto · GHI-9012',
+                'veiculo'          => 'Volkswagen Polo 2022 · Preto · GHI-9012',
                 'data_entrega'     => '2026-06-07',
                 'data_vencimento'  => '2026-06-22',
                 'status'           => 'vencendo',
