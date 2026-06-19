@@ -17,3 +17,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Artefatos de verificação (screenshots de testes)
+verify-*.png

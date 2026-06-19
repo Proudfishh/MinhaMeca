@@ -229,6 +229,7 @@ class MockOsService
                 'mecanico'            => 'Marcos Ferreira',
                 'data_entrada'        => '2025-06-05',
                 'previsao_entrega'    => '2025-06-13',
+                'data_entrega_real'   => '2025-06-13',
                 'descricao_cliente'   => 'Troca de amortecedores.',
                 'servicos'            => [
                     ['descricao' => 'Troca amortecedores dianteiros', 'valor' => 620.00, 'status' => 'concluido'],
