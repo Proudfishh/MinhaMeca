@@ -1,6 +1,6 @@
 <x-layouts.oficina title="Ordens de Serviço">
 
-<div x-data="{ view: 'kanban', grupos: @js(array_fill_keys(array_keys($etapas), true)) }">
+<div x-data="{ view: 'kanban', grupos: @js(array_fill_keys(array_keys($etapas), false)) }">
 
     {{-- ===== HEADER DESKTOP ===== --}}
     <div class="hidden md:flex items-center justify-between mb-5">
