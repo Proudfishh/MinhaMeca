@@ -1,49 +1,61 @@
 <x-layouts.oficina :title="$veiculo['marca'] . ' ' . $veiculo['modelo']">
 
-<div class="space-y-5">
+<div class="space-y-5" x-data="{ tab: 'historico', editOpen: false }">
 
-    {{-- ===== HEADER DO VEÍCULO ===== --}}
+    {{-- ===== HEADER ===== --}}
     <div class="bg-white rounded-xl p-5" style="border: 1px solid var(--color-border);">
         <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                      style="background: rgba(30,58,95,0.08); border: 1.5px solid rgba(30,58,95,0.15);">
-                    <svg class="w-6 h-6 text-ocean" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h10a2 2 0 002-2zm0 0V9h4l3 3v4h-7z"/>
+                    <svg class="w-6 h-6" fill="none" stroke="#1E3A5F" stroke-width="1.75" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h10a2 2 0 002-2zm0 0V9h4l3 3v4h-7z"/>
                     </svg>
                 </div>
                 <div>
                     <h2 class="font-display font-bold text-void text-xl leading-tight">
                         {{ $veiculo['marca'] }} {{ $veiculo['modelo'] }}
                     </h2>
-                    <p class="text-muted text-sm mt-0.5">
-                        {{ $veiculo['ano'] }} · {{ $veiculo['cor'] }}
-                    </p>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-muted text-sm">{{ $veiculo['ano'] }} · {{ $veiculo['cor'] }}</span>
+                        <span class="font-mono text-sm font-bold text-void px-2.5 py-0.5 rounded-md"
+                              style="background: rgba(15,23,42,0.06); border: 1px solid var(--color-border);">
+                            {{ $veiculo['placa'] }}
+                        </span>
+                    </div>
+                    <a href="{{ route('oficina.clientes.show', $veiculo['cliente_id']) }}"
+                       class="text-spark text-sm font-medium hover:underline mt-1 inline-block">
+                        {{ $cliente['nome'] ?? '—' }}
+                    </a>
                 </div>
             </div>
-            <span class="font-mono text-sm font-bold text-void px-3 py-1.5 rounded-lg"
-                  style="background: rgba(15,23,42,0.06); border: 1px solid var(--color-border);">
-                {{ $veiculo['placa'] }}
-            </span>
+            <button @click="editOpen = true"
+                    class="flex-shrink-0 px-4 py-2 rounded-lg text-white text-sm font-semibold transition-opacity hover:opacity-90"
+                    style="background: var(--color-spark);">
+                Editar
+            </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5 pt-5" style="border-top: 1px solid var(--color-border);">
-            <div>
-                <p class="text-muted text-xs mb-0.5">Proprietário</p>
-                <a href="{{ route('oficina.clientes.show', $veiculo['cliente_id']) }}"
-                   class="text-spark text-sm font-medium hover:underline">
-                    {{ $cliente['nome'] ?? '—' }}
-                </a>
+        {{-- STATS --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5" style="border-top: 1px solid var(--color-border);">
+            <div class="rounded-lg px-4 py-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+                <p class="text-muted text-xs mb-1">KM Atual</p>
+                <p class="font-mono font-bold text-void text-base">{{ number_format($veiculo['km'], 0, ',', '.') }}</p>
             </div>
-            <div>
-                <p class="text-muted text-xs mb-0.5">Total de OS</p>
-                <p class="font-display font-bold text-void text-sm">{{ count($osDoVeiculo) }}</p>
+            <div class="rounded-lg px-4 py-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+                <p class="text-muted text-xs mb-1">Total de OS</p>
+                <p class="font-mono font-bold text-void text-base">{{ count($osDoVeiculo) }}</p>
             </div>
-            <div>
-                <p class="text-muted text-xs mb-0.5">Última entrada</p>
-                <p class="font-mono text-sm text-void">
-                    @if(count($osDoVeiculo) > 0)
-                        {{ \Carbon\Carbon::parse($osDoVeiculo[0]['data_entrada'])->format('d/m/Y') }}
+            <div class="rounded-lg px-4 py-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+                <p class="text-muted text-xs mb-1">Total Gasto</p>
+                <p class="font-mono font-bold text-void text-base">R$ {{ number_format($totalGasto, 0, ',', '.') }}</p>
+            </div>
+            <div class="rounded-lg px-4 py-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+                <p class="text-muted text-xs mb-1">Última OS</p>
+                <p class="font-mono font-bold text-void text-base">
+                    @if($ultimaOS)
+                        {{ \Carbon\Carbon::parse($ultimaOS['data_entrada'])->format('d/m/Y') }}
                     @else
                         —
                     @endif
@@ -52,66 +64,231 @@
         </div>
     </div>
 
-    {{-- ===== HISTÓRICO DE OS ===== --}}
+    {{-- ===== ABAS ===== --}}
     <div class="bg-white rounded-xl" style="border: 1px solid var(--color-border);">
-        <div class="px-5 py-4" style="border-bottom: 1px solid var(--color-border);">
-            <h3 class="font-display font-semibold text-void text-base">Histórico de Ordens de Serviço</h3>
+
+        {{-- Tab nav --}}
+        <div class="flex" style="border-bottom: 1px solid var(--color-border);">
+            <button @click="tab = 'historico'"
+                    :class="tab === 'historico' ? 'text-spark border-b-2 border-spark font-semibold' : 'text-muted hover:text-void'"
+                    class="px-6 py-3.5 text-sm transition-colors -mb-px">
+                Histórico
+            </button>
+            <button @click="tab = 'dados'"
+                    :class="tab === 'dados' ? 'text-spark border-b-2 border-spark font-semibold' : 'text-muted hover:text-void'"
+                    class="px-6 py-3.5 text-sm transition-colors -mb-px">
+                Dados do Veículo
+            </button>
         </div>
 
-        @if(count($osDoVeiculo) === 0)
-            <div class="px-5 py-16 text-center">
-                <p class="text-muted text-sm">Nenhuma OS registrada para este veículo.</p>
-            </div>
-        @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--color-border);">
-                            <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">OS</th>
-                            <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Entrada</th>
-                            <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Etapa</th>
-                            <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Mecânico</th>
-                            <th class="text-right px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Total</th>
-                            <th class="px-5 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($osDoVeiculo as $os)
-                            @php $etapa = $etapas[$os['etapa_atual']]; @endphp
-                            <tr class="hover:bg-surface transition-colors" style="border-bottom: 1px solid var(--color-border);">
-                                <td class="px-5 py-3.5">
-                                    <span class="font-mono text-xs text-muted">{{ $os['id'] }}</span>
-                                </td>
-                                <td class="px-5 py-3.5">
-                                    <span class="font-mono text-sm text-void">
-                                        {{ \Carbon\Carbon::parse($os['data_entrada'])->format('d/m/Y') }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md font-medium"
-                                          style="background: {{ $etapa['cor'] }}18; color: {{ $etapa['cor'] }};">
-                                        <span class="w-1.5 h-1.5 rounded-full" style="background: {{ $etapa['cor'] }};"></span>
-                                        {{ $etapa['label'] }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-3.5">
-                                    <span class="text-muted text-sm">{{ $os['mecanico'] }}</span>
-                                </td>
-                                <td class="px-5 py-3.5 text-right">
-                                    <span class="font-mono text-sm text-void">
-                                        R$ {{ number_format($os['total'], 2, ',', '.') }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-3.5">
-                                    <a href="{{ route('oficina.os.show', $os['id']) }}"
-                                       class="text-spark text-xs font-medium hover:underline">Ver →</a>
-                                </td>
+        {{-- ABA HISTÓRICO --}}
+        <div x-show="tab === 'historico'" x-transition>
+            @if(count($osDoVeiculo) === 0)
+                <div class="px-5 py-16 text-center">
+                    <p class="text-muted text-sm">Nenhuma OS registrada para este veículo.</p>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--color-border);">
+                                <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">OS</th>
+                                <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide hidden md:table-cell">Entrada</th>
+                                <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Serviço</th>
+                                <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide hidden md:table-cell">Etapa</th>
+                                <th class="text-right px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Total</th>
+                                <th class="px-5 py-3"></th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($osDoVeiculo as $os)
+                                @php $etapa = $etapas[$os['etapa_atual']]; @endphp
+                                <tr class="hover:bg-surface transition-colors cursor-pointer"
+                                    style="border-bottom: 1px solid var(--color-border);"
+                                    onclick="window.location='{{ route('oficina.os.show', $os['id']) }}'">
+                                    <td class="px-5 py-3.5">
+                                        <span class="font-mono text-xs text-muted">{{ $os['id'] }}</span>
+                                    </td>
+                                    <td class="px-5 py-3.5 hidden md:table-cell">
+                                        <span class="font-mono text-sm text-void">
+                                            {{ \Carbon\Carbon::parse($os['data_entrada'])->format('d/m/Y') }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <p class="text-void font-medium text-sm">{{ $os['descricao_cliente'] }}</p>
+                                        <p class="text-muted text-xs mt-0.5 md:hidden">
+                                            {{ \Carbon\Carbon::parse($os['data_entrada'])->format('d/m/Y') }}
+                                        </p>
+                                    </td>
+                                    <td class="px-5 py-3.5 hidden md:table-cell">
+                                        <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md font-medium"
+                                              style="background: {{ $etapa['cor'] }}18; color: {{ $etapa['cor'] }};">
+                                            <span class="w-1.5 h-1.5 rounded-full" style="background: {{ $etapa['cor'] }};"></span>
+                                            {{ $etapa['label'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-right">
+                                        <span class="font-mono text-sm font-semibold text-void">
+                                            R$ {{ number_format($os['total'], 0, ',', '.') }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <span class="text-spark text-xs font-medium">Ver →</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+
+        {{-- ABA DADOS --}}
+        <div x-show="tab === 'dados'" x-transition>
+            <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid var(--color-border);">
+                <p class="text-muted text-xs">Dados de cadastro do veículo.</p>
+                <button @click="editOpen = true"
+                        class="text-spark text-sm font-semibold hover:underline">
+                    Editar
+                </button>
             </div>
-        @endif
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-0">
+                @php
+                    $campos = [
+                        ['label' => 'Marca',       'valor' => $veiculo['marca'],       'mono' => false],
+                        ['label' => 'Modelo',      'valor' => $veiculo['modelo'],      'mono' => false],
+                        ['label' => 'Ano',         'valor' => $veiculo['ano'],         'mono' => false],
+                        ['label' => 'Cor',         'valor' => $veiculo['cor'],         'mono' => false],
+                        ['label' => 'Placa',       'valor' => $veiculo['placa'],       'mono' => true],
+                        ['label' => 'Chassi',      'valor' => $veiculo['chassi'],      'mono' => true],
+                        ['label' => 'Combustível', 'valor' => $veiculo['combustivel'], 'mono' => false],
+                        ['label' => 'Câmbio',      'valor' => $veiculo['cambio'],      'mono' => false],
+                        ['label' => 'KM Atual',    'valor' => number_format($veiculo['km'], 0, ',', '.'), 'mono' => true],
+                    ];
+                @endphp
+                @foreach($campos as $campo)
+                    <div class="px-5 py-4" style="border-bottom: 1px solid var(--color-border); border-right: 1px solid var(--color-border);">
+                        <p class="text-muted text-xs uppercase tracking-wide mb-1">{{ $campo['label'] }}</p>
+                        <p class="{{ $campo['mono'] ? 'font-mono' : '' }} text-void text-sm font-medium">{{ $campo['valor'] }}</p>
+                    </div>
+                @endforeach
+                <div class="px-5 py-4" style="border-bottom: 1px solid var(--color-border); border-right: 1px solid var(--color-border);">
+                    <p class="text-muted text-xs uppercase tracking-wide mb-1">Proprietário</p>
+                    <a href="{{ route('oficina.clientes.show', $veiculo['cliente_id']) }}"
+                       class="text-spark text-sm font-medium hover:underline">
+                        {{ $cliente['nome'] ?? '—' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- ===== MODAL EDITAR ===== --}}
+    <div x-show="editOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(15,23,42,0.5);"
+         @click.self="editOpen = false"
+         @keydown.escape.window="editOpen = false">
+
+        <div x-show="editOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-xl shadow-xl w-full max-w-lg"
+             style="border: 1px solid var(--color-border);">
+
+            {{-- Modal header --}}
+            <div class="flex items-center justify-between px-6 py-4" style="border-bottom: 1px solid var(--color-border);">
+                <h3 class="font-display font-bold text-void text-lg">Editar Veículo</h3>
+                <button @click="editOpen = false" class="text-muted hover:text-void transition-colors p-1 rounded-lg hover:bg-surface">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Modal body --}}
+            <div class="px-6 py-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">KM Atual</label>
+                        <input type="number"
+                               value="{{ $veiculo['km'] }}"
+                               placeholder="ex: 87400"
+                               class="w-full px-3 py-2 rounded-lg text-sm font-mono text-void focus:outline-none focus:ring-2"
+                               style="border: 1px solid var(--color-border); background: var(--color-surface); focus-ring-color: var(--color-spark);">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">Cor</label>
+                        <input type="text"
+                               value="{{ $veiculo['cor'] }}"
+                               placeholder="ex: Prata"
+                               class="w-full px-3 py-2 rounded-lg text-sm text-void focus:outline-none focus:ring-2"
+                               style="border: 1px solid var(--color-border); background: var(--color-surface);">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">Placa</label>
+                        <input type="text"
+                               value="{{ $veiculo['placa'] }}"
+                               placeholder="ex: ABC-1234"
+                               class="w-full px-3 py-2 rounded-lg text-sm font-mono text-void focus:outline-none focus:ring-2 uppercase"
+                               style="border: 1px solid var(--color-border); background: var(--color-surface);">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">Chassi</label>
+                        <input type="text"
+                               value="{{ $veiculo['chassi'] }}"
+                               placeholder="ex: 9BW..."
+                               class="w-full px-3 py-2 rounded-lg text-sm font-mono text-void focus:outline-none focus:ring-2"
+                               style="border: 1px solid var(--color-border); background: var(--color-surface);">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">Combustível</label>
+                        <select class="w-full px-3 py-2 rounded-lg text-sm text-void focus:outline-none focus:ring-2"
+                                style="border: 1px solid var(--color-border); background: var(--color-surface);">
+                            @foreach(['Flex', 'Gasolina', 'Diesel', 'Elétrico', 'Híbrido'] as $opt)
+                                <option {{ $veiculo['combustivel'] === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-muted uppercase tracking-wide mb-1.5">Câmbio</label>
+                        <select class="w-full px-3 py-2 rounded-lg text-sm text-void focus:outline-none focus:ring-2"
+                                style="border: 1px solid var(--color-border); background: var(--color-surface);">
+                            @foreach(['Manual', 'Automático', 'CVT'] as $opt)
+                                <option {{ $veiculo['cambio'] === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <p class="text-muted text-xs">Marca, modelo e ano não são editáveis aqui.</p>
+            </div>
+
+            {{-- Modal footer --}}
+            <div class="flex justify-end gap-3 px-6 py-4" style="border-top: 1px solid var(--color-border);">
+                <button @click="editOpen = false"
+                        class="px-4 py-2 rounded-lg text-sm text-muted hover:text-void hover:bg-surface transition-colors"
+                        style="border: 1px solid var(--color-border);">
+                    Cancelar
+                </button>
+                <button @click="alert('Fase 1 — funcionalidade mockada'); editOpen = false"
+                        class="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-opacity hover:opacity-90"
+                        style="background: var(--color-spark);">
+                    Salvar
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>
