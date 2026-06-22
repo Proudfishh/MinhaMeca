@@ -20,3 +20,7 @@ yarn-error.log
 
 # Artefatos de verificação (screenshots de testes)
 verify-*.png
+verify-*.mjs
+
+# Brainstorming / visual companion
+.superpowers/

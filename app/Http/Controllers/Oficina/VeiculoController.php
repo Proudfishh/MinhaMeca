@@ -48,8 +48,10 @@ class VeiculoController extends Controller
             ->values()
             ->all();
 
-        $etapas = MockOsService::ETAPAS;
+        $etapas     = MockOsService::ETAPAS;
+        $totalGasto = collect($osDoVeiculo)->sum('total');
+        $ultimaOS   = collect($osDoVeiculo)->first();
 
-        return view('oficina.veiculos.show', compact('veiculo', 'cliente', 'osDoVeiculo', 'etapas'));
+        return view('oficina.veiculos.show', compact('veiculo', 'cliente', 'osDoVeiculo', 'etapas', 'totalGasto', 'ultimaOS'));
     }
 }
