@@ -1,9 +1,9 @@
 <x-layouts.oficina title="Ordens de Serviço">
 
-<div x-data="{ view: 'kanban' }">
+<div x-data="{ view: 'kanban', grupos: @js(array_fill_keys(array_keys($etapas), true)) }">
 
-    {{-- ===== HEADER DA PÁGINA ===== --}}
-    <div class="flex items-center justify-between mb-5">
+    {{-- ===== HEADER DESKTOP ===== --}}
+    <div class="hidden md:flex items-center justify-between mb-5">
         <div>
             <p class="text-muted text-xs mb-0.5">{{ collect($todasOs)->count() }} ordens de serviço</p>
         </div>
@@ -39,6 +39,112 @@
             </a>
         </div>
     </div>
+
+    {{-- ===== HEADER MOBILE ===== --}}
+    <div class="md:hidden flex items-center justify-between mb-4">
+        <div>
+            <p class="text-muted text-xs mb-0.5">{{ collect($todasOs)->count() }} ordens de serviço</p>
+            <h2 class="font-display font-bold text-void text-base leading-tight">Ordens de Serviço</h2>
+        </div>
+        <a href="{{ route('oficina.os.create') }}"
+           class="flex items-center justify-center w-9 h-9 bg-spark hover:bg-blue-500 text-white rounded-xl transition-colors shadow-sm"
+           style="box-shadow: 0 2px 8px rgba(59,130,246,.35);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+        </a>
+    </div>
+
+    {{-- ===== LISTA MOBILE (agrupada por etapa) ===== --}}
+    <div class="md:hidden flex flex-col gap-3">
+        @foreach($etapas as $key => $etapa)
+            @php $cards = $filaEtapas[$key] ?? []; @endphp
+
+            <div class="rounded-xl overflow-hidden" style="border: 1px solid var(--color-border);">
+
+                {{-- Cabeçalho do grupo (clicável para colapsar) --}}
+                <button @click="grupos.{{ $key }} = !grupos.{{ $key }}"
+                        class="w-full flex items-center justify-between px-4 py-3 transition-colors"
+                        style="background: {{ $etapa['cor'] }}0f;">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                             style="background: {{ $etapa['cor'] }};"></div>
+                        <span class="text-xs font-bold tracking-wide"
+                              style="color: {{ $etapa['cor'] }};">{{ strtoupper($etapa['label']) }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full"
+                              style="background: {{ $etapa['cor'] }}22; color: {{ $etapa['cor'] }};">
+                            {{ count($cards) }}
+                        </span>
+                        <svg class="w-4 h-4 transition-transform duration-200"
+                             :class="grupos.{{ $key }} ? 'rotate-0' : '-rotate-90'"
+                             fill="none" stroke="{{ $etapa['cor'] }}" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                </button>
+
+                {{-- Cards do grupo --}}
+                <div x-show="grupos.{{ $key }}"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="flex flex-col divide-y bg-white"
+                     style="border-top: 1px solid var(--color-border);">
+
+                    @forelse($cards as $os)
+                        <a href="{{ route('oficina.os.show', $os['id']) }}"
+                           class="flex items-start gap-3 px-4 py-3 hover:bg-surface active:bg-surface transition-colors">
+                            {{-- Barra colorida da etapa --}}
+                            <div class="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5"
+                                 style="background: {{ $etapa['cor'] }};"></div>
+                            {{-- Info --}}
+                            <div class="flex-1 min-w-0">
+                                <p class="font-mono text-[10px] text-muted mb-0.5">{{ $os['id'] }}</p>
+                                <p class="font-bold text-void text-sm leading-tight">{{ $os['cliente'] }}</p>
+                                @php
+                                    $partes = explode(' · ', $os['veiculo']);
+                                    $modeloAno = $partes[0] ?? '';
+                                    $placa = $partes[2] ?? '';
+                                @endphp
+                                <p class="text-muted text-xs mt-0.5">{{ $modeloAno }}@if($placa) · <span class="font-mono">{{ $placa }}</span>@endif</p>
+                                {{-- Footer do card --}}
+                                <div class="flex items-center gap-1.5 mt-2">
+                                    <div class="w-5 h-5 rounded-full bg-ocean flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white text-[9px] font-bold">{{ substr($os['mecanico'], 0, 1) }}</span>
+                                    </div>
+                                    <span class="text-muted text-[11px]">{{ explode(' ', $os['mecanico'])[0] }}</span>
+                                </div>
+                            </div>
+                            {{-- Data previsão --}}
+                            <div class="flex-shrink-0 flex flex-col items-end justify-between self-stretch">
+                                @if($os['previsao_entrega'])
+                                    <span class="font-mono text-[11px] text-muted">
+                                        {{ \Carbon\Carbon::parse($os['previsao_entrega'])->format('d/m') }}
+                                    </span>
+                                @else
+                                    <span class="text-[11px] text-muted">—</span>
+                                @endif
+                                <svg class="w-4 h-4 text-muted opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </a>
+                    @empty
+                        <div class="px-4 py-4 flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full opacity-30" style="background: {{ $etapa['cor'] }};"></div>
+                            <p class="text-muted text-xs">Nenhuma OS nesta etapa</p>
+                        </div>
+                    @endforelse
+
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- ============================= DESKTOP: KANBAN + TABELA ============================= --}}
+    <div class="hidden md:block">
 
     {{-- ============================= KANBAN ============================= --}}
     <div x-show="view === 'kanban'"
@@ -226,6 +332,8 @@
             </table>
         </div>
     </div>
+
+    </div> {{-- /DESKTOP: KANBAN + TABELA --}}
 
 </div>
 
