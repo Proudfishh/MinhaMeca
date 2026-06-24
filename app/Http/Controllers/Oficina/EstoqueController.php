@@ -28,6 +28,13 @@ class EstoqueController extends Controller
             'valor_total' => collect($itens)->sum(fn ($i) => $i['quantidade'] * $i['valor_unitario']),
         ];
 
-        return view('oficina.estoque.index', compact('itens', 'metricas'));
+        $categorias = collect($itens)
+            ->pluck('categoria')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return view('oficina.estoque.index', compact('itens', 'metricas', 'categorias'));
     }
 }
