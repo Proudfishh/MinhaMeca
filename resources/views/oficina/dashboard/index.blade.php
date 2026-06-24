@@ -158,43 +158,58 @@
     {{-- ==================== OS RECENTES ==================== --}}
 
     {{-- DESKTOP: tabela --}}
-    <div class="hidden md:block bg-white rounded-xl" style="border: 1px solid var(--color-border);">
-        <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid var(--color-border);">
+    <div class="hidden md:block bg-white rounded-2xl overflow-hidden"
+         style="border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div class="flex items-center justify-between px-6 py-4"
+             style="border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(248,250,252,0.7);">
             <h2 class="font-display font-semibold text-void text-sm">Ordens de Serviço Recentes</h2>
-            <a href="{{ route('oficina.os.index') }}" class="text-spark text-xs font-medium hover:underline">Ver todas</a>
+            <a href="{{ route('oficina.os.index') }}"
+               class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors duration-200"
+               style="color: var(--color-spark); background: rgba(59,130,246,0.07);">
+                Ver todas →
+            </a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">OS</th>
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Cliente</th>
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Veículo</th>
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Etapa</th>
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Mecânico</th>
-                        <th class="text-left px-5 py-3 text-muted text-xs font-medium uppercase tracking-wide">Valor</th>
-                        <th class="px-5 py-3"></th>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">OS</th>
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">Cliente</th>
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">Veículo</th>
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">Etapa</th>
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">Mecânico</th>
+                        <th class="text-left px-6 py-3 text-muted text-[11px] font-semibold uppercase tracking-wider">Valor</th>
+                        <th class="px-6 py-3"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($os as $ordem)
                         @php $etapa = \App\Services\Mock\MockOsService::ETAPAS[$ordem['etapa_atual']]; @endphp
-                        <tr class="hover:bg-surface transition-colors" style="border-bottom: 1px solid var(--color-border);">
-                            <td class="px-5 py-3.5"><span class="font-mono text-xs text-muted whitespace-nowrap">{{ $ordem['id'] }}</span></td>
-                            <td class="px-5 py-3.5"><span class="text-void font-medium text-sm">{{ $ordem['cliente'] }}</span></td>
-                            <td class="px-5 py-3.5"><span class="text-muted text-xs">{{ $ordem['veiculo'] }}</span></td>
-                            <td class="px-5 py-3.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md font-medium"
-                                      style="background: {{ $etapa['cor'] }}18; color: {{ $etapa['cor'] }};">
+                        <tr class="transition-all duration-200 hover:bg-[#F8FAFC]"
+                            style="border-bottom: 1px solid rgba(0,0,0,0.04);">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs whitespace-nowrap px-2 py-1 rounded-md"
+                                      style="background: rgba(0,0,0,0.04); color: var(--color-muted);">{{ $ordem['id'] }}</span>
+                            </td>
+                            <td class="px-6 py-4"><span class="text-void font-medium text-sm">{{ $ordem['cliente'] }}</span></td>
+                            <td class="px-6 py-4"><span class="text-muted text-xs">{{ $ordem['veiculo'] }}</span></td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium"
+                                      style="background: {{ $etapa['cor'] }}15; color: {{ $etapa['cor'] }};">
                                     <span class="w-1.5 h-1.5 rounded-full" style="background: {{ $etapa['cor'] }};"></span>
                                     {{ $etapa['label'] }}
                                 </span>
                             </td>
-                            <td class="px-5 py-3.5"><span class="text-muted text-sm">{{ $ordem['mecanico'] }}</span></td>
-                            <td class="px-5 py-3.5"><span class="font-mono text-sm text-void">R$ {{ number_format($ordem['total'], 0, ',', '.') }}</span></td>
-                            <td class="px-5 py-3.5">
+                            <td class="px-6 py-4"><span class="text-muted text-sm">{{ $ordem['mecanico'] }}</span></td>
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-sm font-semibold text-void">R$ {{ number_format($ordem['total'], 0, ',', '.') }}</span>
+                            </td>
+                            <td class="px-6 py-4">
                                 <a href="{{ route('oficina.os.show', $ordem['id']) }}"
-                                   class="text-spark text-xs hover:underline font-medium">Ver →</a>
+                                   class="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors duration-200"
+                                   style="color: var(--color-spark); background: rgba(59,130,246,0.07);">
+                                    Ver
+                                </a>
                             </td>
                         </tr>
                     @endforeach
@@ -204,31 +219,40 @@
     </div>
 
     {{-- MOBILE: OS como cards --}}
-    <div class="md:hidden bg-white rounded-xl" style="border: 1px solid var(--color-border);">
-        <div class="flex items-center justify-between px-4 py-3.5" style="border-bottom: 1px solid var(--color-border);">
+    <div class="md:hidden rounded-2xl overflow-hidden"
+         style="border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div class="flex items-center justify-between px-4 py-3.5"
+             style="border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(248,250,252,0.8);">
             <h2 class="font-display font-semibold text-void text-sm">OS Recentes</h2>
-            <a href="{{ route('oficina.os.index') }}" class="text-spark text-xs font-medium hover:underline">Ver todas</a>
+            <a href="{{ route('oficina.os.index') }}"
+               class="text-xs font-medium px-2.5 py-1 rounded-lg"
+               style="color: var(--color-spark); background: rgba(59,130,246,0.07);">
+                Ver todas →
+            </a>
         </div>
-        <div class="divide-y" style="border-color: var(--color-border);">
-            @foreach($os as $ordem)
+        <div class="bg-white">
+            @foreach($os as $i => $ordem)
                 @php $etapa = \App\Services\Mock\MockOsService::ETAPAS[$ordem['etapa_atual']]; @endphp
                 <a href="{{ route('oficina.os.show', $ordem['id']) }}"
-                   class="flex items-start justify-between gap-3 px-4 py-4 hover:bg-surface transition-colors block">
+                   class="flex items-start justify-between gap-3 px-4 py-4 transition-all duration-200 active:bg-[#F8FAFC] block"
+                   style="{{ !$loop->last ? 'border-bottom: 1px solid rgba(0,0,0,0.05);' : '' }}">
+                    <div class="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5"
+                         style="background: {{ $etapa['cor'] }}; opacity: 0.6;"></div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="font-mono text-xs text-muted whitespace-nowrap">{{ $ordem['id'] }}</span>
-                            <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
-                                  style="background: {{ $etapa['cor'] }}18; color: {{ $etapa['cor'] }};">
-                                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: {{ $etapa['cor'] }};"></span>
+                            <span class="font-mono text-[11px] px-1.5 py-0.5 rounded"
+                                  style="background: rgba(0,0,0,0.05); color: var(--color-muted);">{{ $ordem['id'] }}</span>
+                            <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium"
+                                  style="background: {{ $etapa['cor'] }}15; color: {{ $etapa['cor'] }};">
                                 {{ $etapa['label'] }}
                             </span>
                         </div>
                         <p class="text-void font-semibold text-sm leading-snug">{{ $ordem['cliente'] }}</p>
                         <p class="text-muted text-xs mt-0.5 truncate">{{ $ordem['veiculo'] }}</p>
                     </div>
-                    <div class="text-right flex-shrink-0">
+                    <div class="text-right flex-shrink-0 pt-0.5">
                         <p class="font-mono text-sm font-bold text-void">R$ {{ number_format($ordem['total'], 0, ',', '.') }}</p>
-                        <p class="text-spark text-xs mt-1">Ver →</p>
+                        <p class="text-[11px] mt-1" style="color: var(--color-spark);">Ver →</p>
                     </div>
                 </a>
             @endforeach
