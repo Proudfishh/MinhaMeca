@@ -474,7 +474,7 @@
         </div>{{-- /card --}}
 
         {{-- ---- Nav Mobile (fixed bottom) ---- --}}
-        <div class="sm:hidden fixed bottom-0 left-0 right-0 z-30 px-4 py-3 bg-white flex items-center gap-3"
+        <div class="sm:hidden fixed bottom-14 left-0 right-0 z-50 px-4 py-3 bg-white flex items-center gap-3"
              style="border-top: 1px solid var(--color-border); box-shadow: 0 -4px 20px rgba(15,23,42,0.07);">
             <button type="button" @click="voltar()"
                     x-show="step > 1"
@@ -513,7 +513,7 @@
         </div>
 
         {{-- Espaço para o nav mobile não sobrepor o card --}}
-        <div class="sm:hidden h-20"></div>
+        <div class="sm:hidden h-36"></div>
 
     </form>
 </div>{{-- /wizard --}}
