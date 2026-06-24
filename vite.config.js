@@ -1,14 +1,26 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
+import os from 'os';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd(), '');
+function getLocalIP() {
+    for (const iface of Object.values(os.networkInterfaces())) {
+        for (const alias of iface) {
+            if (alias.family === 'IPv4' && !alias.internal && !alias.address.startsWith('169.')) {
+                return alias.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
+export default defineConfig(() => {
+    const localIP = getLocalIP();
 
     return {
         server: {
             host: '0.0.0.0',
-            origin: env.VITE_DEV_ORIGIN || 'http://localhost:5173',
+            origin: `http://${localIP}:5173`,
         },
         plugins: [
             tailwindcss(),
