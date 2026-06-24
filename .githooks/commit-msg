@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Mantém as mensagens de commit limpas: remove trailers de co-autoria
+# automáticos e rodapés gerados por ferramentas.
+msg_file="$1"
+tmp="$msg_file.clean"
+
+grep -viE 'co-authored-by:|generated with|🤖|noreply@(anthropic|openai)\.com' "$msg_file" > "$tmp"
+
+# Remove linhas em branco sobrando no final
+sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}' "$tmp" > "$msg_file"
+rm -f "$tmp"
+exit 0
