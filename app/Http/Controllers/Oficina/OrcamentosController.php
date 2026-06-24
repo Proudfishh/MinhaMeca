@@ -50,8 +50,30 @@ class OrcamentosController extends Controller
 
     public function store(Request $request)
     {
-        // Mock: apenas redireciona com mensagem de sucesso
         return redirect()->route('oficina.orcamentos.index')
             ->with('sucesso', 'Orçamento criado com sucesso!');
+    }
+
+    public function show(int $id)
+    {
+        $orc = $this->orcamentosService->find($id);
+
+        if (! $orc) {
+            abort(404, 'Orçamento não encontrado.');
+        }
+
+        $osAbertas = [
+            ['id' => 'OS-2024-018', 'cliente' => 'João Silva',     'veiculo' => 'Honda Civic'],
+            ['id' => 'OS-2024-019', 'cliente' => 'Maria Oliveira', 'veiculo' => 'Toyota Corolla'],
+            ['id' => 'OS-2024-020', 'cliente' => 'Carlos Santos',  'veiculo' => 'VW Polo'],
+        ];
+
+        return view('oficina.orcamentos.show', compact('orc', 'osAbertas'));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        return redirect()->route('oficina.orcamentos.show', $id)
+            ->with('sucesso', 'Orçamento atualizado com sucesso!');
     }
 }

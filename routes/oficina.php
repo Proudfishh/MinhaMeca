@@ -9,6 +9,7 @@ use App\Http\Controllers\Oficina\EstoqueController;
 use App\Http\Controllers\Oficina\FinanceiroController;
 use App\Http\Controllers\Oficina\GarantiaController;
 use App\Http\Controllers\Oficina\ConfiguracoesController;
+use App\Http\Controllers\Oficina\OrcamentosController;
 
 Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -25,6 +26,12 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/veiculos/{id}', [VeiculoController::class, 'show'])->name('veiculos.show');
 
     Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+
+    Route::get('/orcamentos',         [OrcamentosController::class, 'index'])->name('orcamentos.index');
+    Route::get('/orcamentos/novo',   [OrcamentosController::class, 'create'])->name('orcamentos.create');
+    Route::post('/orcamentos',       [OrcamentosController::class, 'store'])->name('orcamentos.store');
+    Route::get('/orcamentos/{id}',   [OrcamentosController::class, 'show'])->name('orcamentos.show');
+    Route::post('/orcamentos/{id}',  [OrcamentosController::class, 'update'])->name('orcamentos.update');
 
     Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
 
