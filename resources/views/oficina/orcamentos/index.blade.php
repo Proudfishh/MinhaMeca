@@ -14,15 +14,12 @@ window.__orcamentos = {!! json_encode(
     <div class="flex items-center gap-2 flex-wrap">
         <h2 class="font-display font-bold text-void text-xl">Orçamentos</h2>
         <span class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold"
-              style="background:rgba(59,130,246,0.1);color:#3B82F6;">
-            {{ $metricas['total'] }} total
-        </span>
-        @if($metricas['pendente'] > 0)
-        <span class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold"
-              style="background:rgba(245,158,11,0.12);color:#D97706;">
-            {{ $metricas['pendente'] }} pendente(s)
-        </span>
-        @endif
+              style="background:rgba(59,130,246,0.1);color:#3B82F6;"
+              x-text="temFiltro ? (filtrados.length + ' de {{ $metricas['total'] }}') : (filtrados.length + ' total')"></span>
+        <span x-show="pendentesFiltrado > 0" x-cloak
+              class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold"
+              style="background:rgba(245,158,11,0.12);color:#D97706;"
+              x-text="pendentesFiltrado + ' pendente(s)'"></span>
     </div>
     <a href="{{ route('oficina.orcamentos.create') }}"
        class="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-medium"
@@ -38,19 +35,19 @@ window.__orcamentos = {!! json_encode(
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="bg-white rounded-xl px-4 py-3" style="border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,0.04);">
         <p class="text-muted text-[10px] font-semibold uppercase tracking-wide mb-1">Total</p>
-        <p class="font-mono font-bold text-void text-lg">{{ $metricas['total'] }}</p>
+        <p class="font-mono font-bold text-void text-lg" x-text="filtrados.length">{{ $metricas['total'] }}</p>
     </div>
     <div class="bg-white rounded-xl px-4 py-3" style="border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,0.04);">
         <p class="text-muted text-[10px] font-semibold uppercase tracking-wide mb-1">Pendentes</p>
-        <p class="font-mono font-bold text-lg {{ $metricas['pendente'] > 0 ? 'text-amber-600' : 'text-void' }}">{{ $metricas['pendente'] }}</p>
+        <p class="font-mono font-bold text-lg" :class="pendentesFiltrado > 0 ? 'text-amber-600' : 'text-void'" x-text="pendentesFiltrado">{{ $metricas['pendente'] }}</p>
     </div>
     <div class="bg-white rounded-xl px-4 py-3" style="border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,0.04);">
         <p class="text-muted text-[10px] font-semibold uppercase tracking-wide mb-1">Aprovados</p>
-        <p class="font-mono font-bold text-emerald-600 text-lg">{{ $metricas['aprovado'] }}</p>
+        <p class="font-mono font-bold text-emerald-600 text-lg" x-text="aprovadosFiltrado">{{ $metricas['aprovado'] }}</p>
     </div>
     <div class="bg-white rounded-xl px-4 py-3" style="border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,0.04);">
         <p class="text-muted text-[10px] font-semibold uppercase tracking-wide mb-1">Valor total</p>
-        <p class="font-mono font-bold text-void text-lg">R$ {{ number_format($metricas['valor'], 0, ',', '.') }}</p>
+        <p class="font-mono font-bold text-void text-lg" x-text="'R$ ' + formatarValorInt(valorFiltrado)">R$ {{ number_format($metricas['valor'], 0, ',', '.') }}</p>
     </div>
 </div>
 
@@ -82,6 +79,110 @@ window.__orcamentos = {!! json_encode(
     </button>
 </div>
 
+{{-- Chips de status + botão Filtros --}}
+<div class="flex items-center gap-2 mb-4 flex-wrap">
+    <button @click="statusAtivo = 'todos'" :style="chipStyle('todos')"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">Todos</button>
+    <button @click="statusAtivo = 'rascunho'" :style="chipStyle('rascunho')"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">Rascunho</button>
+    <button @click="statusAtivo = 'pendente'" :style="chipStyle('pendente')"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">Pendente</button>
+    <button @click="statusAtivo = 'aprovado'" :style="chipStyle('aprovado')"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">Aprovado</button>
+
+    {{-- Botão Filtros + painel (dropdown no desktop, bottom sheet no mobile) --}}
+    <div class="relative ml-auto">
+        <button @click="painelAberto ? painelAberto = false : abrirPainel()"
+                class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
+                style="background:rgba(59,130,246,0.08);color:#3B82F6;border:1px solid rgba(59,130,246,0.2);">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-8.586L3.293 6.707A1 1 0 013 6V4z"/>
+            </svg>
+            Filtros
+            <span x-show="filtrosAtivosCount > 0" x-text="filtrosAtivosCount"
+                  class="text-[9px] font-bold text-white rounded-full px-1.5 leading-tight" style="background:#3B82F6;"></span>
+            <svg class="w-3 h-3 transition-transform" :class="painelAberto ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        {{-- Backdrop (só mobile) --}}
+        <div x-show="painelAberto" @click="painelAberto = false"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-40 md:hidden" style="background:rgba(0,0,0,0.5);" x-cloak></div>
+
+        {{-- Painel --}}
+        <div x-show="painelAberto" @click.outside="painelAberto = false" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="translate-y-full md:translate-y-0 md:opacity-0 md:-translate-y-1"
+             x-transition:enter-end="translate-y-0 md:opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="translate-y-0 md:opacity-100"
+             x-transition:leave-end="translate-y-full md:translate-y-0 md:opacity-0"
+             class="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl px-4 pb-6 pt-3
+                    md:absolute md:inset-x-auto md:right-0 md:left-auto md:bottom-auto md:top-[calc(100%+0.5rem)] md:w-80 md:rounded-xl md:p-4 md:pb-4"
+             style="background:#fff;border:1px solid var(--color-border);box-shadow:0 -8px 30px rgba(0,0,0,0.15);max-height:85vh;overflow-y:auto;">
+
+            <div class="md:hidden flex justify-center mb-3">
+                <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
+            </div>
+            <div class="flex items-center justify-between mb-4">
+                <p class="font-bold text-void text-base">Filtros</p>
+                <button @click="limparDraft()" class="text-xs text-muted hover:text-void transition-colors">Limpar</button>
+            </div>
+
+            {{-- Validade --}}
+            <div class="mb-4">
+                <p class="text-[10px] font-bold text-muted uppercase tracking-wide mb-2">Validade</p>
+                <template x-for="op in [['todas','Todas'],['vencendo','Vencendo (7d)'],['vencidos','Vencidos'],['mes','Este mês']]" :key="op[0]">
+                    <button @click="draft.validade = op[0]" :style="pillStyle('validade', op[0])"
+                            class="text-xs px-3 py-1.5 rounded-lg mr-1.5 mb-1.5" x-text="op[1]"></button>
+                </template>
+            </div>
+
+            {{-- Faixa de valor --}}
+            <div class="mb-4">
+                <p class="text-[10px] font-bold text-muted uppercase tracking-wide mb-2">Faixa de valor</p>
+                <template x-for="op in [['qualquer','Qualquer'],['ate200','Até R$ 200'],['200a500','R$ 200–500'],['500mais','R$ 500+']]" :key="op[0]">
+                    <button @click="draft.valor = op[0]" :style="pillStyle('valor', op[0])"
+                            class="text-xs px-3 py-1.5 rounded-lg mr-1.5 mb-1.5" x-text="op[1]"></button>
+                </template>
+            </div>
+
+            {{-- Vínculo com OS --}}
+            <div class="mb-4">
+                <p class="text-[10px] font-bold text-muted uppercase tracking-wide mb-2">Vínculo com OS</p>
+                <template x-for="op in [['todos','Todos'],['com','Com OS'],['sem','Avulso']]" :key="op[0]">
+                    <button @click="draft.vinculo = op[0]" :style="pillStyle('vinculo', op[0])"
+                            class="text-xs px-3 py-1.5 rounded-lg mr-1.5 mb-1.5" x-text="op[1]"></button>
+                </template>
+            </div>
+
+            {{-- Período de criação --}}
+            <div class="mb-4">
+                <p class="text-[10px] font-bold text-muted uppercase tracking-wide mb-2">Período de criação</p>
+                <template x-for="op in [['qualquer','Qualquer'],['7dias','Últimos 7 dias'],['mes','Este mês']]" :key="op[0]">
+                    <button @click="draft.periodo = op[0]" :style="pillStyle('periodo', op[0])"
+                            class="text-xs px-3 py-1.5 rounded-lg mr-1.5 mb-1.5" x-text="op[1]"></button>
+                </template>
+            </div>
+
+            {{-- Ordenar por --}}
+            <div class="mb-5">
+                <p class="text-[10px] font-bold text-muted uppercase tracking-wide mb-2">Ordenar por</p>
+                <template x-for="op in [['recentes','Mais recentes'],['valor','Maior valor'],['validade','Validade próxima']]" :key="op[0]">
+                    <button @click="draft.ordenar = op[0]" :style="pillStyle('ordenar', op[0])"
+                            class="text-xs px-3 py-1.5 rounded-lg mr-1.5 mb-1.5" x-text="op[1]"></button>
+                </template>
+            </div>
+
+            <button @click="aplicar()" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#0f172a;"
+                    x-text="'Aplicar (' + previaCount + ')'"></button>
+        </div>
+    </div>
+</div>
+
 {{-- Estado vazio --}}
 <template x-if="orcamentos.length === 0">
     <div class="flex flex-col items-center justify-center py-20 text-center">
@@ -99,16 +200,17 @@ window.__orcamentos = {!! json_encode(
 <template x-if="orcamentos.length > 0">
     <div>
 
-        {{-- Resultado vazio da busca --}}
-        <template x-if="filtrados.length === 0 && busca.trim().length > 0">
+        {{-- Resultado vazio (busca ou filtros) --}}
+        <template x-if="filtrados.length === 0">
             <div class="flex flex-col items-center justify-center py-14 text-center">
-                <p class="text-void text-sm font-semibold mb-1">Nenhum resultado para "<span x-text="busca"></span>"</p>
-                <p class="text-muted text-xs">Tente buscar por placa, nome do cliente ou veículo</p>
+                <p class="text-void text-sm font-semibold mb-1">Nenhum orçamento com esses filtros</p>
+                <p class="text-muted text-xs mb-3">Ajuste a busca, o status ou os filtros avançados</p>
+                <button @click="limparTudo()" class="text-spark text-xs font-semibold hover:underline">Limpar tudo</button>
             </div>
         </template>
 
         {{-- MOBILE: cards --}}
-        <div class="md:hidden rounded-2xl overflow-hidden mb-20" style="border:1px solid rgba(0,0,0,0.06);box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <div x-show="filtrados.length > 0" class="md:hidden rounded-2xl overflow-hidden mb-20" style="border:1px solid rgba(0,0,0,0.06);box-shadow:0 2px 8px rgba(0,0,0,0.04);">
             <template x-for="(orc, i) in filtrados" :key="orc.id">
                 <a :href="'{{ url('oficina/orcamentos') }}/' + orc.id"
                    class="flex items-center gap-3 px-4 py-4 bg-white active:bg-slate-50 transition-colors"
@@ -150,7 +252,7 @@ window.__orcamentos = {!! json_encode(
         </div>
 
         {{-- DESKTOP: tabela --}}
-        <div class="hidden md:block bg-white rounded-xl overflow-hidden" style="border:1px solid var(--color-border);">
+        <div x-show="filtrados.length > 0" class="hidden md:block bg-white rounded-xl overflow-hidden" style="border:1px solid var(--color-border);">
             <table class="w-full text-sm">
                 <thead>
                     <tr style="border-bottom:1px solid var(--color-border);">
@@ -222,9 +324,16 @@ window.__orcamentos = {!! json_encode(
 
 <script>
 function orcamentosIndex() {
+    const padroes = () => ({ validade: 'todas', valor: 'qualquer', vinculo: 'todos', periodo: 'qualquer', ordenar: 'recentes' });
+
     return {
         busca: '',
         orcamentos: [],
+
+        statusAtivo: 'todos',
+        painelAberto: false,
+        ativo: padroes(),
+        draft: padroes(),
 
         init() {
             this.orcamentos = window.__orcamentos || [];
@@ -234,14 +343,103 @@ function orcamentosIndex() {
             return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
         },
 
-        get filtrados() {
+        // ── Helpers de data ──
+        fmtData(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        },
+        hojeStr() { return this.fmtData(new Date()); },
+        addDiasStr(n) { const d = new Date(); d.setDate(d.getDate() + n); return this.fmtData(d); },
+
+        // ── Predicados de filtro ──
+        matchValidade(o, v) {
+            if (v === 'todas') return true;
+            if (!o.validade) return false;
+            const hoje = this.hojeStr();
+            if (v === 'vencidos') return o.validade < hoje;
+            if (v === 'vencendo') return o.validade >= hoje && o.validade <= this.addDiasStr(7);
+            if (v === 'mes') return o.validade.slice(0, 7) === hoje.slice(0, 7);
+            return true;
+        },
+        matchValor(o, v) {
+            const t = parseFloat(o.total || 0);
+            if (v === 'ate200') return t <= 200;
+            if (v === '200a500') return t > 200 && t <= 500;
+            if (v === '500mais') return t > 500;
+            return true;
+        },
+        matchVinculo(o, v) {
+            if (v === 'todos') return true;
+            return v === 'com' ? !!o.os_vinculada : !o.os_vinculada;
+        },
+        matchPeriodo(o, v) {
+            if (v === 'qualquer') return true;
+            if (!o.criado_em) return false;
+            if (v === '7dias') return o.criado_em >= this.addDiasStr(-7);
+            if (v === 'mes') return o.criado_em.slice(0, 7) === this.hojeStr().slice(0, 7);
+            return true;
+        },
+        ordenarLista(lista, ord) {
+            const arr = [...lista];
+            if (ord === 'valor') arr.sort((a, b) => parseFloat(b.total || 0) - parseFloat(a.total || 0));
+            else if (ord === 'validade') arr.sort((a, b) => (a.validade || '9999-99-99').localeCompare(b.validade || '9999-99-99'));
+            else arr.sort((a, b) => (b.criado_em || '').localeCompare(a.criado_em || ''));
+            return arr;
+        },
+
+        // Aplica busca + status + filtros (f) e ordena. Reutilizado pela lista e pela prévia.
+        computar(f, status) {
             const q = this.normalizar(this.busca);
-            if (!q) return this.orcamentos;
-            return this.orcamentos.filter(o =>
-                this.normalizar(o.cliente).includes(q) ||
-                this.normalizar(o.veiculo).includes(q) ||
-                this.normalizar(o.placa).includes(q)
-            );
+            const lista = this.orcamentos.filter(o => {
+                if (q && !(this.normalizar(o.cliente).includes(q) || this.normalizar(o.veiculo).includes(q) || this.normalizar(o.placa).includes(q))) return false;
+                if (status !== 'todos' && o.status !== status) return false;
+                return this.matchValidade(o, f.validade) && this.matchValor(o, f.valor)
+                    && this.matchVinculo(o, f.vinculo) && this.matchPeriodo(o, f.periodo);
+            });
+            return this.ordenarLista(lista, f.ordenar);
+        },
+
+        get filtrados() { return this.computar(this.ativo, this.statusAtivo); },
+        get previaCount() { return this.computar(this.draft, this.statusAtivo).length; },
+
+        // Métricas reativas (refletem o que está filtrado)
+        get temFiltro() { return this.busca.trim() !== '' || this.statusAtivo !== 'todos' || this.filtrosAtivosCount > 0; },
+        get pendentesFiltrado() { return this.filtrados.filter(o => o.status === 'pendente').length; },
+        get aprovadosFiltrado() { return this.filtrados.filter(o => o.status === 'aprovado').length; },
+        get valorFiltrado() { return this.filtrados.reduce((s, o) => s + parseFloat(o.total || 0), 0); },
+        formatarValorInt(v) { return parseFloat(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 }); },
+
+        get filtrosAtivosCount() {
+            let n = 0;
+            if (this.ativo.validade !== 'todas') n++;
+            if (this.ativo.valor !== 'qualquer') n++;
+            if (this.ativo.vinculo !== 'todos') n++;
+            if (this.ativo.periodo !== 'qualquer') n++;
+            return n;
+        },
+
+        // ── Ações do painel ──
+        abrirPainel() { this.draft = { ...this.ativo }; this.painelAberto = true; },
+        aplicar() { this.ativo = { ...this.draft }; this.painelAberto = false; },
+        limparDraft() { this.draft = padroes(); },
+        limparTudo() { this.busca = ''; this.statusAtivo = 'todos'; this.ativo = padroes(); this.draft = padroes(); this.painelAberto = false; },
+
+        // ── Estilos ──
+        chipStyle(s) {
+            const ativo = this.statusAtivo === s;
+            const off = 'background:#fff;color:#475569;border:1px solid var(--color-border);';
+            if (!ativo) return off;
+            const on = {
+                todos:    'background:#0f172a;color:#fff;border:1px solid #0f172a;',
+                rascunho: 'background:rgba(100,116,139,0.14);color:#475569;border:1px solid rgba(100,116,139,0.45);',
+                pendente: 'background:rgba(245,158,11,0.16);color:#b45309;border:1px solid rgba(245,158,11,0.5);',
+                aprovado: 'background:rgba(16,185,129,0.16);color:#047857;border:1px solid rgba(16,185,129,0.5);',
+            };
+            return on[s] || off;
+        },
+        pillStyle(field, val) {
+            return this.draft[field] === val
+                ? 'background:rgba(59,130,246,0.1);border:1px solid #3B82F6;color:#1d4ed8;font-weight:600;'
+                : 'background:#f8fafc;border:1px solid var(--color-border);color:#475569;font-weight:500;';
         },
 
         statusInfo(s) {
