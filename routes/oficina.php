@@ -30,8 +30,9 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/orcamentos',         [OrcamentosController::class, 'index'])->name('orcamentos.index');
     Route::get('/orcamentos/novo',   [OrcamentosController::class, 'create'])->name('orcamentos.create');
     Route::post('/orcamentos',       [OrcamentosController::class, 'store'])->name('orcamentos.store');
-    Route::get('/orcamentos/{id}',   [OrcamentosController::class, 'show'])->name('orcamentos.show');
-    Route::post('/orcamentos/{id}',  [OrcamentosController::class, 'update'])->name('orcamentos.update');
+    Route::get('/orcamentos/{id}',        [OrcamentosController::class, 'show'])->name('orcamentos.show');
+    Route::get('/orcamentos/{id}/editar', [OrcamentosController::class, 'edit'])->name('orcamentos.edit');
+    Route::post('/orcamentos/{id}',       [OrcamentosController::class, 'update'])->name('orcamentos.update');
 
     Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
 

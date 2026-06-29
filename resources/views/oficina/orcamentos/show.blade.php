@@ -21,7 +21,6 @@
     sheetStatusAberto:  false,
     sheetOsAberto:      false,
     sheetExcluirAberto: false,
-    sheetEditarAberto:  false,
     sheetPdfAberto:     false,
     pdfCarregando:      false,
     pdfPronto:          false,
@@ -218,8 +217,8 @@
             </svg>
         </button>
 
-        {{-- Editar itens --}}
-        <button @click="sheetEditarAberto = true"
+        {{-- Editar orçamento (abre o wizard completo, pré-preenchido) --}}
+        <a href="{{ route('oficina.orcamentos.edit', $orc['id']) }}"
                 class="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-surface transition-colors"
                 style="border-bottom:1px solid var(--color-border);">
             <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.08);">
@@ -229,12 +228,12 @@
             </div>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-void text-sm">Editar orçamento</p>
-                <p class="text-xs text-muted">Itens, quantidades e valores</p>
+                <p class="text-xs text-muted">Peças, serviços, contexto e validade</p>
             </div>
             <svg class="w-4 h-4 flex-shrink-0 text-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
             </svg>
-        </button>
+        </a>
 
         {{-- Vincular OS --}}
         <button @click="sheetOsAberto = true"
@@ -347,77 +346,6 @@
         <input type="hidden" :name="'status'" :value="novoStatus">
         <button type="submit" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#0f172a;">
             Salvar alteração
-        </button>
-    </form>
-</div>
-
-{{-- ============================================================
-     BOTTOM SHEET — EDITAR ITENS
-============================================================ --}}
-<div x-show="sheetEditarAberto"
-     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-     @click="sheetEditarAberto = false"
-     class="fixed inset-0 z-40" style="background:rgba(0,0,0,0.5);" x-cloak></div>
-<div x-show="sheetEditarAberto"
-     x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
-     @click.stop
-     class="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl px-4 pb-8 pt-3" style="background:#fff;max-height:90vh;overflow-y:auto;" x-cloak>
-
-    <div class="flex justify-center mb-4">
-        <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
-    </div>
-    <div class="flex items-center justify-between mb-4">
-        <p class="font-bold text-void text-base">Editar itens</p>
-        <span class="text-xs text-muted">{{ count($orc['itens']) }} itens</span>
-    </div>
-
-    <form method="POST" action="{{ route('oficina.orcamentos.update', $orc['id']) }}">
-        @csrf
-        <input type="hidden" name="acao" value="editar">
-
-        <div class="space-y-2 mb-5">
-            @foreach($orc['itens'] as $idx => $item)
-            @php $cfg = $tipoConfig[$item['tipo'] ?? 'outro'] ?? $tipoConfig['outro']; @endphp
-            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--color-border);">
-                {{-- label do tipo --}}
-                <div class="px-3 py-1.5 flex items-center gap-1.5" style="background:#fafafa;border-bottom:1px solid var(--color-border);">
-                    <div class="w-1.5 h-1.5 rounded-full" style="background:{{ $cfg['color'] }};"></div>
-                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color:{{ $cfg['color'] }};">{{ $cfg['label'] }}</span>
-                </div>
-                {{-- campos --}}
-                <div class="p-3 space-y-2">
-                    <div>
-                        <label class="text-[10px] font-semibold text-muted uppercase tracking-wide block mb-1">Descrição</label>
-                        <input type="text" name="itens[{{ $idx }}][descricao]"
-                               value="{{ $item['descricao'] }}"
-                               class="w-full px-3 py-2 rounded-lg text-sm text-void bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
-                               style="border:1px solid var(--color-border);">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-[10px] font-semibold text-muted uppercase tracking-wide block mb-1">Qtd</label>
-                            <input type="number" name="itens[{{ $idx }}][qtd]"
-                                   value="{{ $item['qtd'] }}" min="1"
-                                   class="w-full px-3 py-2 rounded-lg text-sm text-void bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 font-mono"
-                                   style="border:1px solid var(--color-border);">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-semibold text-muted uppercase tracking-wide block mb-1">Preço unit.</label>
-                            <input type="number" name="itens[{{ $idx }}][preco]"
-                                   value="{{ $item['preco'] }}" step="0.01" min="0"
-                                   class="w-full px-3 py-2 rounded-lg text-sm text-void bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 font-mono"
-                                   style="border:1px solid var(--color-border);">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-
-        <button type="submit" class="w-full py-3 rounded-xl text-sm font-bold text-white" style="background:#059669;">
-            Salvar alterações
         </button>
     </form>
 </div>

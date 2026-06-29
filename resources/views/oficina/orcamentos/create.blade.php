@@ -1,10 +1,12 @@
-<x-layouts.oficina title="Novo Orçamento">
+@php $orcamento = $orcamento ?? null; @endphp
+<x-layouts.oficina :title="$orcamento ? 'Editar Orçamento' : 'Novo Orçamento'">
 
 <script>
 window.__itensEstoque = {!! json_encode($itensEstoque, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
 window.__clientes     = {!! json_encode($clientes,     JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
-window.__storeUrl     = '{{ route('oficina.orcamentos.store') }}';
+window.__submitUrl    = '{{ $orcamento ? route('oficina.orcamentos.update', $orcamento['id']) : route('oficina.orcamentos.store') }}';
 window.__csrfToken    = '{{ csrf_token() }}';
+window.__orcamento    = {!! $orcamento ? json_encode($orcamento, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 'null' !!};
 </script>
 
 {{-- Tudo dentro do mesmo x-data para que os sheets fixos acessem o estado --}}
@@ -22,7 +24,7 @@ window.__csrfToken    = '{{ csrf_token() }}';
         Orçamentos
     </a>
     <span class="text-muted/40">·</span>
-    <span class="font-display font-semibold text-void text-sm">Novo Orçamento</span>
+    <span class="font-display font-semibold text-void text-sm" x-text="modoEdicao ? 'Editar ' + codigoOrc : 'Novo Orçamento'">Novo Orçamento</span>
 </div>
 
 {{-- ============================================================
@@ -224,7 +226,8 @@ window.__csrfToken    = '{{ csrf_token() }}';
                 <p class="font-semibold text-void text-sm truncate" x-text="headerLabel"></p>
                 <p class="text-muted text-[11px]">Montando orçamento</p>
             </div>
-            <span class="font-mono text-xs px-2 py-1 rounded-lg font-bold" style="background:rgba(59,130,246,0.08);color:#3b82f6;">NOVO</span>
+            <span class="font-mono text-xs px-2 py-1 rounded-lg font-bold" style="background:rgba(59,130,246,0.08);color:#3b82f6;"
+                  x-text="modoEdicao ? codigoOrc : 'NOVO'">NOVO</span>
         </div>
 
         {{-- ── Peças ── --}}
@@ -446,7 +449,8 @@ window.__csrfToken    = '{{ csrf_token() }}';
     </button>
     <button @click="salvar('pendente')"
             class="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity"
-            :style="totalSecoes > 0 ? 'background:#3b82f6;' : 'background:#3b82f6;opacity:.4;'">
+            :style="totalSecoes > 0 ? 'background:#3b82f6;' : 'background:#3b82f6;opacity:.4;'"
+            x-text="modoEdicao ? 'Salvar' : 'Gerar ORC'">
         Gerar ORC
     </button>
 </div>
@@ -582,6 +586,10 @@ function novoOrcamento() {
     return {
         step: 1,
 
+        modoEdicao: false,
+        codigoOrc:  '',
+        orcId:      null,
+
         contexto: null,
         buscaCliente: '',
         clienteSelecionado: null,
@@ -670,7 +678,29 @@ function novoOrcamento() {
                 { id: 2, placa: 'DEF-5678', modelo: 'Toyota Corolla 2021', cliente: 'Maria Oliveira' },
                 { id: 3, placa: 'GHI-9012', modelo: 'VW Polo 2022',        cliente: 'Carlos Santos' },
             ];
-            this.setValidade(7);
+
+            const orc = window.__orcamento || null;
+            if (orc) {
+                // Modo edição: semeia o wizard com o orçamento existente e já abre a montagem.
+                this.modoEdicao = true;
+                this.codigoOrc  = orc.codigo;
+                this.orcId      = orc.id;
+                this.contexto   = orc.contexto;
+                this.clienteSelecionado = orc.cliente || null;
+                this.veiculoSelecionado = orc.veiculo || null;
+                this.osSelecionada      = orc.os_vinculada || null;
+                this.validadeData       = orc.validade || '';
+                this.validadeDias       = null;
+                this.pecas = (orc.pecas || []).map(p => ({ ...p }));
+                if ((orc.servicos || []).length) {
+                    this.maoDeObra.ativa = true;
+                    this.maoDeObra.modo  = 'detalhado';
+                    this.maoDeObra.itens = orc.servicos.map(s => ({ ...s }));
+                }
+                this.step = 2;
+            } else {
+                this.setValidade(7);
+            }
         },
 
         setValidade(dias) {
@@ -721,9 +751,10 @@ function novoOrcamento() {
         salvar(status) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = window.__storeUrl;
+            form.action = window.__submitUrl;
             const campos = {
                 _token:       window.__csrfToken,
+                acao:         this.modoEdicao ? 'editar' : 'criar',
                 status,
                 contexto:     this.contexto,
                 cliente_id:   this.clienteSelecionado?.id ?? '',

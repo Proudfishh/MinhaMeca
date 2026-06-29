@@ -35,8 +35,77 @@ class OrcamentosController extends Controller
     {
         $tenantId = session('tenant_id', 1);
 
-        $clientes = $this->clienteService->all($tenantId);
+        $clientes     = $this->clienteService->all($tenantId);
+        $itensEstoque = $this->itensEstoqueComStatus($tenantId);
 
+        return view('oficina.orcamentos.create', compact('clientes', 'itensEstoque'));
+    }
+
+    public function edit(int $id)
+    {
+        $orc = $this->orcamentosService->find($id);
+
+        if (! $orc) {
+            abort(404, 'Orçamento não encontrado.');
+        }
+
+        $tenantId = session('tenant_id', 1);
+
+        $clientes     = $this->clienteService->all($tenantId);
+        $itensEstoque = $this->itensEstoqueComStatus($tenantId);
+
+        // Monta o estado inicial do wizard a partir do orçamento existente.
+        $pecas    = [];
+        $servicos = [];
+        foreach ($orc['itens'] as $i => $it) {
+            if (($it['tipo'] ?? 'peca') === 'peca') {
+                $pecas[] = [
+                    'id'     => 'orc-' . $i,
+                    'nome'   => $it['descricao'],
+                    'preco'  => $it['preco'],
+                    'qtd'    => $it['qtd'],
+                    'manual' => true,
+                ];
+            } else {
+                $servicos[] = [
+                    'desc'  => $it['descricao'],
+                    'valor' => round($it['preco'] * $it['qtd'], 2),
+                ];
+            }
+        }
+
+        if ($orc['os_vinculada']) {
+            $contexto = 'os';
+        } elseif (! empty($orc['cliente'])) {
+            $contexto = 'cliente';
+        } elseif (! empty($orc['veiculo'])) {
+            $contexto = 'veiculo';
+        } else {
+            $contexto = 'avulso';
+        }
+
+        $orcamento = [
+            'id'           => $orc['id'],
+            'codigo'       => $orc['codigo'],
+            'status'       => $orc['status'],
+            'contexto'     => $contexto,
+            'cliente'      => $orc['cliente']
+                ? ['id' => null, 'nome' => $orc['cliente'], 'telefone' => '']
+                : null,
+            'veiculo'      => $orc['veiculo']
+                ? ['id' => null, 'placa' => $orc['placa'], 'modelo' => $orc['veiculo'], 'cliente' => $orc['cliente'] ?? '']
+                : null,
+            'os_vinculada' => $orc['os_vinculada'],
+            'validade'     => $orc['validade'],
+            'pecas'        => $pecas,
+            'servicos'     => $servicos,
+        ];
+
+        return view('oficina.orcamentos.create', compact('clientes', 'itensEstoque', 'orcamento'));
+    }
+
+    private function itensEstoqueComStatus(int $tenantId): array
+    {
         $itensEstoque = $this->estoqueService->all($tenantId);
         foreach ($itensEstoque as &$item) {
             $item['status'] = $item['quantidade'] <= 0
@@ -45,7 +114,7 @@ class OrcamentosController extends Controller
         }
         unset($item);
 
-        return view('oficina.orcamentos.create', compact('clientes', 'itensEstoque'));
+        return $itensEstoque;
     }
 
     public function store(Request $request)
