@@ -90,12 +90,13 @@
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
-                     class="flex flex-col divide-y bg-white"
+                     class="flex flex-col bg-white"
                      style="border-top: 1px solid var(--color-border);">
 
                     @forelse($cards as $os)
                         <a href="{{ route('oficina.os.show', $os['id']) }}"
-                           class="flex items-start gap-3 px-4 py-3 hover:bg-surface active:bg-surface transition-colors">
+                           class="flex items-start gap-3 px-4 py-3 hover:bg-surface active:bg-surface transition-colors"
+                           style="{{ !$loop->last ? 'border-bottom: 1px solid rgba(0,0,0,0.05);' : '' }}">
                             {{-- Barra colorida da etapa --}}
                             <div class="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5"
                                  style="background: {{ $etapa['cor'] }};"></div>
