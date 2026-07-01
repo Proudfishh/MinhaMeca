@@ -16,7 +16,7 @@
                       x-text="metricas.ativas + ' ativas'"></span>
             </div>
             <button type="button" @click="abrirModalNova()"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors">
+                    class="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -204,6 +204,16 @@
             </svg>
             <span x-text="toastMsg"></span>
         </div>
+
+        {{-- FAB mobile --}}
+        <button type="button" @click="abrirModalNova()"
+                class="md:hidden fixed right-4 z-30 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg"
+                style="bottom:5rem;background:var(--color-spark);box-shadow:0 4px 16px rgba(59,130,246,0.45);"
+                aria-label="Nova pendência">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
 
         {{-- ==================== MODAL REGISTRAR PAGAMENTO ==================== --}}
         <template x-teleport="body">

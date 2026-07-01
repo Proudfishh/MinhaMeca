@@ -41,18 +41,9 @@
     </div>
 
     {{-- ===== HEADER MOBILE ===== --}}
-    <div class="md:hidden flex items-center justify-between mb-4">
-        <div>
-            <p class="text-muted text-xs mb-0.5">{{ collect($todasOs)->count() }} ordens de serviço</p>
-            <h2 class="font-display font-bold text-void text-base leading-tight">Ordens de Serviço</h2>
-        </div>
-        <a href="{{ route('oficina.os.create') }}"
-           class="flex items-center justify-center w-9 h-9 bg-spark hover:bg-blue-500 text-white rounded-xl transition-colors shadow-sm"
-           style="box-shadow: 0 2px 8px rgba(59,130,246,.35);">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-        </a>
+    <div class="md:hidden mb-4">
+        <p class="text-muted text-xs mb-0.5">{{ collect($todasOs)->count() }} ordens de serviço</p>
+        <h2 class="font-display font-bold text-void text-base leading-tight">Ordens de Serviço</h2>
     </div>
 
     {{-- ===== LISTA MOBILE (agrupada por etapa) ===== --}}
@@ -337,5 +328,14 @@
     </div> {{-- /DESKTOP: KANBAN + TABELA --}}
 
 </div>
+
+{{-- FAB mobile --}}
+<a href="{{ route('oficina.os.create') }}"
+   class="md:hidden fixed right-4 z-30 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg"
+   style="bottom:5rem;background:var(--color-spark);box-shadow:0 4px 16px rgba(59,130,246,0.45);">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
+</a>
 
 </x-layouts.oficina>
