@@ -209,45 +209,67 @@ window.__orcamentos = {!! json_encode(
             </div>
         </template>
 
-        {{-- MOBILE: cards --}}
+        {{-- MOBILE: cards com swipe-to-delete --}}
         <div x-show="filtrados.length > 0" class="md:hidden rounded-2xl overflow-hidden mb-20" style="border:1px solid rgba(0,0,0,0.06);box-shadow:0 2px 8px rgba(0,0,0,0.04);">
             <template x-for="(orc, i) in filtrados" :key="orc.id">
-                <a :href="'{{ url('oficina/orcamentos') }}/' + orc.id"
-                   class="flex items-center gap-3 px-4 py-4 bg-white active:bg-slate-50 transition-colors"
-                   :style="i < filtrados.length - 1 ? 'border-bottom:1px solid rgba(0,0,0,0.05);' : ''">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-mono font-bold text-void text-sm" x-text="orc.codigo"></span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                                  :style="statusInfo(orc.status)">
-                                <span x-text="statusLabel(orc.status)"></span>
-                            </span>
-                        </div>
-                        <p class="text-muted text-xs truncate">
-                            <span x-text="orc.cliente || 'Sem cliente'"></span>
-                            <template x-if="orc.veiculo">
-                                <span> · <span x-text="orc.veiculo"></span></span>
-                            </template>
-                        </p>
-                        <template x-if="orc.placa">
-                            <p class="text-[10px] font-mono mt-0.5 text-muted" x-text="orc.placa"></p>
-                        </template>
-                        <template x-if="orc.os_vinculada">
-                            <p class="text-[10px] mt-0.5" style="color:#3B82F6;">
-                                🔗 <span x-text="orc.os_vinculada"></span>
+                {{-- Trilho: fundo vermelho fixo + card deslizante --}}
+                <div class="relative overflow-hidden bg-white"
+                     :style="(i < filtrados.length - 1 ? 'border-bottom:1px solid rgba(0,0,0,0.05);' : '') + (saindoId === orc.id ? 'max-height:0;opacity:0;transition:all 0.26s ease;' : 'max-height:220px;')">
+
+                    {{-- Fundo: botão excluir revelado ao deslizar --}}
+                    <button type="button" @click="abrirSheetExcluir(orc.id)"
+                            class="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-0.5 text-white"
+                            style="width:88px;background:#ef4444;"
+                            :tabindex="swipeId === orc.id ? 0 : -1"
+                            aria-label="Excluir orçamento">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        <span class="text-[10px] font-semibold">Excluir</span>
+                    </button>
+
+                    {{-- Card deslizante --}}
+                    <a :href="'{{ url('oficina/orcamentos') }}/' + orc.id"
+                       @touchstart.passive="onTouchStart(orc, $event)"
+                       @touchmove="onTouchMove(orc, $event)"
+                       @touchend.passive="onTouchEnd(orc, $event)"
+                       @click="onCardClick(orc, $event)"
+                       class="relative flex items-center gap-3 px-4 py-4 bg-white active:bg-slate-50"
+                       :style="'transform:translateX(' + offsetDe(orc.id) + 'px);' + (arrastando === orc.id ? '' : 'transition:transform 0.2s ease;')">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-mono font-bold text-void text-sm" x-text="orc.codigo"></span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                                      :style="statusInfo(orc.status)">
+                                    <span x-text="statusLabel(orc.status)"></span>
+                                </span>
+                            </div>
+                            <p class="text-muted text-xs truncate">
+                                <span x-text="orc.cliente || 'Sem cliente'"></span>
+                                <template x-if="orc.veiculo">
+                                    <span> · <span x-text="orc.veiculo"></span></span>
+                                </template>
                             </p>
-                        </template>
-                    </div>
-                    <div class="text-right flex-shrink-0">
-                        <p class="font-mono font-bold text-void text-base"
-                           x-text="'R$ ' + formatarValor(orc.total)"></p>
-                        <p class="text-[10px] text-muted mt-0.5"
-                           x-text="'Válido até ' + formatarDataCurta(orc.validade)"></p>
-                    </div>
-                    <svg class="w-4 h-4 flex-shrink-0 ml-1" style="color:#CBD5E1;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
-                    </svg>
-                </a>
+                            <template x-if="orc.placa">
+                                <p class="text-[10px] font-mono mt-0.5 text-muted" x-text="orc.placa"></p>
+                            </template>
+                            <template x-if="orc.os_vinculada">
+                                <p class="text-[10px] mt-0.5" style="color:#3B82F6;">
+                                    🔗 <span x-text="orc.os_vinculada"></span>
+                                </p>
+                            </template>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="font-mono font-bold text-void text-base"
+                               x-text="'R$ ' + formatarValor(orc.total)"></p>
+                            <p class="text-[10px] text-muted mt-0.5"
+                               x-text="'Válido até ' + formatarDataCurta(orc.validade)"></p>
+                        </div>
+                        <svg class="w-4 h-4 flex-shrink-0 ml-1" style="color:#CBD5E1;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </a>
+                </div>
             </template>
         </div>
 
@@ -311,6 +333,59 @@ window.__orcamentos = {!! json_encode(
     </div>
 </template>
 
+{{-- ============================================================
+     BOTTOM SHEET — CONFIRMAR EXCLUSÃO (swipe)
+============================================================ --}}
+<div x-show="sheetExcluirId !== null"
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     @click="fecharSheetExcluir()"
+     class="fixed inset-0 z-40 md:hidden" style="background:rgba(0,0,0,0.5);" x-cloak></div>
+<div x-show="sheetExcluirId !== null"
+     x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
+     @click.stop
+     class="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl px-4 pb-8 pt-3 md:hidden" style="background:#fff;" x-cloak>
+
+    <div class="flex justify-center mb-4">
+        <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
+    </div>
+
+    <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center mb-3" style="background:rgba(239,68,68,0.1);">
+            <svg class="w-6 h-6" style="color:#ef4444;" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+        <p class="font-bold text-void text-base">Excluir <span x-text="codigoSheet()"></span>?</p>
+        <p class="text-sm text-muted mt-1">Esta ação não pode ser desfeita. O orçamento será removido permanentemente.</p>
+    </div>
+
+    <div class="flex gap-2">
+        <button @click="fecharSheetExcluir()"
+                class="flex-1 py-3 rounded-xl text-sm font-semibold text-void transition-colors"
+                style="border:1px solid var(--color-border);background:var(--color-surface);">
+            Cancelar
+        </button>
+        <button @click="confirmarExcluir()"
+                class="flex-1 py-3 rounded-xl text-sm font-bold text-white" style="background:#ef4444;">
+            Excluir
+        </button>
+    </div>
+</div>
+
+{{-- Toast --}}
+<div x-show="toastVisivel" x-cloak
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium"
+     style="bottom:5rem;background:#0f172a;box-shadow:0 6px 20px rgba(0,0,0,0.25);">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span x-text="toastMsg"></span>
+</div>
+
 </div>{{-- /x-data --}}
 
 {{-- FAB mobile --}}
@@ -335,8 +410,92 @@ function orcamentosIndex() {
         ativo: padroes(),
         draft: padroes(),
 
+        // ── Swipe-to-delete (mobile) ──
+        REVEAL: 88,          // largura do botão excluir
+        THRESHOLD: 40,       // distância p/ travar aberto
+        swipeId: null,       // card revelado
+        arrastando: null,    // card em arrasto ativo (desativa transição)
+        swipeStartX: 0,
+        swipeStartY: 0,
+        swipeDx: 0,
+        eixo: null,          // 'h' | 'v' — eixo dominante travado
+        saindoId: null,      // card em animação de saída
+        sheetExcluirId: null,
+        toastVisivel: false,
+        toastMsg: '',
+        _toastT: null,
+
         init() {
             this.orcamentos = window.__orcamentos || [];
+        },
+
+        // ── Swipe ──
+        offsetDe(id) {
+            if (this.arrastando === id) return this.swipeDx;
+            return this.swipeId === id ? -this.REVEAL : 0;
+        },
+        onTouchStart(orc, e) {
+            if (this.swipeId && this.swipeId !== orc.id) this.swipeId = null;
+            const t = e.touches[0];
+            this.swipeStartX = t.clientX;
+            this.swipeStartY = t.clientY;
+            this.eixo = null;
+            this.arrastando = null;
+            this.swipeDx = this.swipeId === orc.id ? -this.REVEAL : 0;
+        },
+        onTouchMove(orc, e) {
+            const t = e.touches[0];
+            const dx = t.clientX - this.swipeStartX;
+            const dy = t.clientY - this.swipeStartY;
+            if (!this.eixo) {
+                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                this.eixo = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+                if (this.eixo === 'h') this.arrastando = orc.id;
+            }
+            if (this.eixo !== 'h') return;   // vertical → deixa rolar
+            e.preventDefault();
+            const base = this.swipeId === orc.id ? -this.REVEAL : 0;
+            this.swipeDx = Math.max(-this.REVEAL, Math.min(0, base + dx));
+        },
+        onTouchEnd(orc, e) {
+            if (this.eixo === 'h') {
+                this.swipeId = this.swipeDx <= -this.THRESHOLD ? orc.id : null;
+            }
+            this.arrastando = null;
+            this.eixo = null;
+        },
+        onCardClick(orc, e) {
+            // Card aberto: primeiro toque só fecha, não navega
+            if (this.swipeId === orc.id) {
+                e.preventDefault();
+                this.swipeId = null;
+            }
+        },
+
+        // ── Exclusão ──
+        abrirSheetExcluir(id) { this.sheetExcluirId = id; },
+        fecharSheetExcluir() { this.sheetExcluirId = null; },
+        codigoSheet() {
+            const o = this.orcamentos.find(x => x.id === this.sheetExcluirId);
+            return o ? o.codigo : '';
+        },
+        confirmarExcluir() {
+            const id = this.sheetExcluirId;
+            this.sheetExcluirId = null;
+            this.swipeId = null;
+            this.saindoId = id;
+            // TODO backend real: chamar rota de exclusão antes de remover
+            setTimeout(() => {
+                this.orcamentos = this.orcamentos.filter(o => o.id !== id);
+                this.saindoId = null;
+                this.mostrarToast('Orçamento excluído');
+            }, 260);
+        },
+        mostrarToast(msg) {
+            this.toastMsg = msg;
+            this.toastVisivel = true;
+            clearTimeout(this._toastT);
+            this._toastT = setTimeout(() => { this.toastVisivel = false; }, 3000);
         },
 
         normalizar(s) {
