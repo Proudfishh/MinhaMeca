@@ -33,11 +33,6 @@
                         <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold"
                               style="background: rgba(124,58,237,0.1); color: #7C3AED;">Dono</span>
                     @endif
-                    @if($aba['key'] === 'equipe')
-                        <span x-show="pendentes.length > 0"
-                              class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
-                              x-text="pendentes.length"></span>
-                    @endif
                 </button>
             @endforeach
         </div>
@@ -65,11 +60,6 @@
                                   style="background: rgba(124,58,237,0.1); color: #7C3AED;">Dono</span>
                         @endif
                     </span>
-                    @if($aba['key'] === 'equipe')
-                        <span x-show="pendentes.length > 0"
-                              class="absolute top-2 right-2 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
-                              x-text="pendentes.length"></span>
-                    @endif
                 </button>
             @endforeach
         </div>
@@ -427,62 +417,6 @@
         {{-- ABA: EQUIPE --}}
         {{-- ============================================================ --}}
         <div x-show="tab === 'equipe'" class="space-y-6">
-
-            {{-- Aprovações pendentes --}}
-            <template x-if="pendentes.length > 0">
-                <div class="bg-white rounded-xl border border-border p-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <h3 class="font-semibold text-void text-base">Aprovações pendentes</h3>
-                        <span class="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
-                              x-text="pendentes.length"></span>
-                    </div>
-                    <div class="space-y-3">
-                        <template x-for="(p, idx) in pendentes" :key="p.id">
-                            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl"
-                                 style="background: rgba(248,250,252,0.8); border: 1px solid var(--color-border);">
-                                <div class="flex items-center gap-3 flex-1 min-w-0">
-                                    <div class="w-10 h-10 rounded-full bg-ocean/20 flex items-center justify-center flex-shrink-0">
-                                        <span class="text-ocean font-bold text-sm" x-text="p.nome.charAt(0)"></span>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-void" x-text="p.nome"></p>
-                                        <p class="text-xs text-muted truncate" x-text="p.email"></p>
-                                        <p class="text-xs text-muted mt-0.5" x-text="'Cadastrado em ' + formatarData(p.data)"></p>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-shrink-0">
-                                    <select x-model="p._papel"
-                                            class="w-full sm:w-auto rounded-lg border border-border px-2 py-1.5 text-xs text-void focus:outline-none focus:border-spark transition-colors">
-                                        <option value="">Selecionar papel</option>
-                                        <option value="gerente">Gerente</option>
-                                        <option value="mecanico">Mecânico</option>
-                                        <option value="recepcao">Recepção</option>
-                                        <option value="financeiro">Financeiro</option>
-                                        <option value="vendedor">Vendedor</option>
-                                    </select>
-                                    <div class="flex items-center gap-2">
-                                        <button @click="aprovarMembro(idx)"
-                                                :disabled="!p._papel"
-                                                class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                                style="background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.2);"
-                                                onmouseover="if(!this.disabled){this.style.background='rgba(16,185,129,0.2)'}"
-                                                onmouseout="this.style.background='rgba(16,185,129,0.1)'">
-                                            Aprovar
-                                        </button>
-                                        <button @click="rejeitarMembro(idx)"
-                                                class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-                                                style="background: rgba(239,68,68,0.08); color: #EF4444; border: 1px solid rgba(239,68,68,0.15);"
-                                                onmouseover="this.style.background='rgba(239,68,68,0.15)'"
-                                                onmouseout="this.style.background='rgba(239,68,68,0.08)'">
-                                            Rejeitar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
 
             {{-- Membros --}}
             <div class="bg-white rounded-xl border border-border p-6">
@@ -979,7 +913,6 @@
 
                 conta:       {},
                 plataforma:  { oficina: {}, horario: [], os_config: {}, portal: {} },
-                pendentes:   [],
                 membros:     [],
                 assinatura:  { cartao: {}, faturas: [], recursos: [] },
 
@@ -1019,7 +952,6 @@
                         os_config: c.os_config,
                         portal:    c.portal,
                     };
-                    this.pendentes  = (c.equipe.pendentes || []).map(p => ({ ...p, _papel: '' }));
                     this.membros    = c.equipe.membros || [];
                     this.assinatura = c.assinatura;
                 },
@@ -1043,26 +975,6 @@
                         membro:         'Membro atualizado!',
                     };
                     this.mostrarToast(msgs[contexto] || 'Configurações salvas!');
-                },
-
-                aprovarMembro(idx) {
-                    const p = this.pendentes[idx];
-                    if (!p._papel) return;
-                    this.membros.push({
-                        id:     Date.now(),
-                        nome:   p.nome,
-                        email:  p.email,
-                        papel:  p._papel,
-                        status: 'ativo',
-                    });
-                    this.pendentes.splice(idx, 1);
-                    this.mostrarToast(p.nome + ' aprovado como ' + this.papelLabel(p._papel) + '!');
-                },
-
-                rejeitarMembro(idx) {
-                    const nome = this.pendentes[idx].nome;
-                    this.pendentes.splice(idx, 1);
-                    this.mostrarToast('Cadastro de ' + nome + ' rejeitado.');
                 },
 
                 cadastrarFuncionario() {
