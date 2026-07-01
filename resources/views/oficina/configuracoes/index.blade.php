@@ -194,8 +194,8 @@
                                     @click="conta.notificacoes.{{ $notif['key'] }} = !conta.notificacoes.{{ $notif['key'] }}"
                                     :class="conta.notificacoes.{{ $notif['key'] }} ? 'bg-spark' : 'bg-border'"
                                     class="relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ml-4">
-                                <span :class="conta.notificacoes.{{ $notif['key'] }} ? 'translate-x-5' : 'translate-x-1'"
-                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
+                                <span :style="conta.notificacoes.{{ $notif['key'] }} ? 'left:20px' : 'left:4px'"
+                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"></span>
                             </button>
                         </label>
                     @endforeach
@@ -333,8 +333,8 @@
                                     @click="dia.ativo = !dia.ativo"
                                     :class="dia.ativo ? 'bg-spark' : 'bg-border'"
                                     class="relative w-9 h-5 rounded-full transition-colors flex-shrink-0">
-                                <span :class="dia.ativo ? 'translate-x-4' : 'translate-x-1'"
-                                      class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
+                                <span :style="dia.ativo ? 'left:16px' : 'left:2px'"
+                                      class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all"></span>
                             </button>
                             <span class="text-sm text-void w-24 sm:w-32 flex-shrink-0" x-text="dia.dia"></span>
                             <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-1 pl-12 sm:pl-0">
@@ -397,8 +397,8 @@
                                     @click="plataforma.portal.exibir_previsao_entrega = !plataforma.portal.exibir_previsao_entrega"
                                     :class="plataforma.portal.exibir_previsao_entrega ? 'bg-spark' : 'bg-border'"
                                     class="relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ml-4">
-                                <span :class="plataforma.portal.exibir_previsao_entrega ? 'translate-x-5' : 'translate-x-1'"
-                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
+                                <span :style="plataforma.portal.exibir_previsao_entrega ? 'left:20px' : 'left:4px'"
+                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"></span>
                             </button>
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
@@ -407,8 +407,8 @@
                                     @click="plataforma.portal.exibir_lista_servicos = !plataforma.portal.exibir_lista_servicos"
                                     :class="plataforma.portal.exibir_lista_servicos ? 'bg-spark' : 'bg-border'"
                                     class="relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ml-4">
-                                <span :class="plataforma.portal.exibir_lista_servicos ? 'translate-x-5' : 'translate-x-1'"
-                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
+                                <span :style="plataforma.portal.exibir_lista_servicos ? 'left:20px' : 'left:4px'"
+                                      class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"></span>
                             </button>
                         </label>
                     </div>
@@ -488,12 +488,12 @@
             <div class="bg-white rounded-xl border border-border p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-semibold text-void text-base">Membros da equipe</h3>
-                    <button @click="modalConviteAberto = true"
+                    <button @click="modalFuncAberto = true"
                             class="inline-flex items-center gap-1.5 px-3 py-2 bg-spark text-white text-xs font-medium rounded-lg hover:bg-spark/90 transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Convidar funcionário
+                        Cadastrar funcionário
                     </button>
                 </div>
 
@@ -636,6 +636,12 @@
                         Fazer upgrade
                     </button>
                 </div>
+                <div class="mt-4 pt-4 flex justify-end" style="border-top: 1px solid var(--color-border);">
+                    <button @click="modalCancelarAberto = true"
+                            class="text-xs font-medium text-muted hover:text-red-500 transition-colors">
+                        Cancelar assinatura
+                    </button>
+                </div>
             </div>
 
             {{-- Pagamento --}}
@@ -744,11 +750,11 @@
         </div>{{-- /assinatura --}}
 
         {{-- ============================================================ --}}
-        {{-- MODAL: CONVIDAR FUNCIONÁRIO --}}
+        {{-- MODAL: CADASTRAR FUNCIONÁRIO --}}
         {{-- ============================================================ --}}
         <template x-teleport="body">
-            <div x-show="modalConviteAberto"
-                 @keydown.escape.window="modalConviteAberto = false"
+            <div x-show="modalFuncAberto"
+                 @keydown.escape.window="modalFuncAberto = false"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
@@ -756,22 +762,27 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  class="fixed inset-0 z-40 flex items-center justify-center p-4">
-                <div @click="modalConviteAberto = false" class="absolute inset-0 bg-void/50"></div>
+                <div @click="modalFuncAberto = false" class="absolute inset-0 bg-void/50"></div>
                 <div class="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0 scale-95"
                      x-transition:enter-end="opacity-100 scale-100">
-                    <h3 class="font-display font-semibold text-void text-lg mb-1">Convidar funcionário</h3>
-                    <p class="text-muted text-sm mb-5">O funcionário receberá um link para criar sua conta.</p>
+                    <h3 class="font-display font-semibold text-void text-lg mb-1">Cadastrar funcionário</h3>
+                    <p class="text-muted text-sm mb-5">O funcionário é adicionado direto à equipe, já ativo.</p>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-medium text-muted mb-1.5">E-mail</label>
-                            <input type="email" x-model="convite.email" placeholder="funcionario@email.com"
+                            <label class="block text-xs font-medium text-muted mb-1.5">Nome completo <span class="text-spark">*</span></label>
+                            <input type="text" x-model="func.nome" placeholder="Ex: João da Silva"
+                                   class="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-void focus:outline-none focus:border-spark transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1.5">E-mail <span class="text-spark">*</span></label>
+                            <input type="email" x-model="func.email" placeholder="funcionario@email.com"
                                    class="w-full rounded-lg border border-border px-3 py-2.5 text-sm focus:outline-none focus:border-spark transition-colors">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-muted mb-1.5">Papel</label>
-                            <select x-model="convite.papel"
+                            <label class="block text-xs font-medium text-muted mb-1.5">Papel <span class="text-spark">*</span></label>
+                            <select x-model="func.papel"
                                     class="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-void focus:outline-none focus:border-spark transition-colors">
                                 <option value="">Selecionar papel</option>
                                 <option value="gerente">Gerente</option>
@@ -783,14 +794,57 @@
                         </div>
                     </div>
                     <div class="flex gap-3 mt-6">
-                        <button @click="modalConviteAberto = false"
+                        <button @click="modalFuncAberto = false"
                                 class="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-muted hover:text-void transition-colors">
                             Cancelar
                         </button>
-                        <button @click="enviarConvite()"
-                                :disabled="!convite.email || !convite.papel"
+                        <button @click="cadastrarFuncionario()"
+                                :disabled="!func.nome || !func.email || !func.papel"
                                 class="flex-1 px-4 py-2.5 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                            Enviar convite
+                            Cadastrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- ============================================================ --}}
+        {{-- MODAL: CANCELAR ASSINATURA --}}
+        {{-- ============================================================ --}}
+        <template x-teleport="body">
+            <div x-show="modalCancelarAberto"
+                 @keydown.escape.window="modalCancelarAberto = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-40 flex items-center justify-center p-4">
+                <div @click="modalCancelarAberto = false" class="absolute inset-0 bg-void/50"></div>
+                <div class="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-4" style="background: rgba(239,68,68,0.1);">
+                        <svg class="w-6 h-6" style="color:#ef4444;" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-void text-lg mb-1">Cancelar assinatura?</h3>
+                    <p class="text-muted text-sm mb-5">
+                        Sua assinatura permanece ativa até <strong class="text-void" x-text="formatarData(assinatura.renovacao)"></strong>.
+                        Após essa data você perde o acesso aos recursos do plano.
+                    </p>
+                    <div class="flex gap-3">
+                        <button @click="modalCancelarAberto = false"
+                                class="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-muted hover:text-void transition-colors">
+                            Manter assinatura
+                        </button>
+                        <button @click="cancelarAssinatura()"
+                                class="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors"
+                                style="background:#ef4444;">
+                            Cancelar assinatura
                         </button>
                     </div>
                 </div>
@@ -919,10 +973,11 @@
                 membros:     [],
                 assinatura:  { cartao: {}, faturas: [], recursos: [] },
 
-                modalConviteAberto: false,
+                modalFuncAberto: false,
                 modalUpgradeAberto: false,
+                modalCancelarAberto: false,
                 sheetMembroId: null,
-                convite: { email: '', papel: '' },
+                func: { nome: '', email: '', papel: '' },
 
                 toastVisible: false,
                 toastMsg:     '',
@@ -1000,10 +1055,23 @@
                     this.mostrarToast('Cadastro de ' + nome + ' rejeitado.');
                 },
 
-                enviarConvite() {
-                    this.modalConviteAberto = false;
-                    this.mostrarToast('Convite enviado para ' + this.convite.email + '!');
-                    this.convite = { email: '', papel: '' };
+                cadastrarFuncionario() {
+                    if (!this.func.nome || !this.func.email || !this.func.papel) return;
+                    this.membros.push({
+                        id:     Date.now(),
+                        nome:   this.func.nome.trim(),
+                        email:  this.func.email.trim(),
+                        papel:  this.func.papel,
+                        status: 'ativo',
+                    });
+                    this.modalFuncAberto = false;
+                    this.mostrarToast(this.func.nome.trim() + ' cadastrado como ' + this.papelLabel(this.func.papel) + '!');
+                    this.func = { nome: '', email: '', papel: '' };
+                },
+
+                cancelarAssinatura() {
+                    this.modalCancelarAberto = false;
+                    this.mostrarToast('Assinatura cancelada. Ativa até ' + this.formatarData(this.assinatura.renovacao) + '.');
                 },
 
                 formatarData(data) {
