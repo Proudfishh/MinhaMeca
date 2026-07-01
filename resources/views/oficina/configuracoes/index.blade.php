@@ -12,15 +12,19 @@
             <p class="text-muted text-sm mt-1">Gerencie sua conta e as configurações da plataforma.</p>
         </div>
 
-        {{-- Abas --}}
-        <div class="flex gap-1 mb-6 p-1 rounded-xl w-fit"
+        @php
+            $abas = [
+                ['key' => 'conta',      'label' => 'Minha Conta', 'dono' => false, 'icon' => 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z'],
+                ['key' => 'plataforma', 'label' => 'Plataforma',  'dono' => true,  'icon' => 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z'],
+                ['key' => 'equipe',     'label' => 'Equipe',      'dono' => true,  'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z'],
+                ['key' => 'assinatura', 'label' => 'Assinatura',  'dono' => true,  'icon' => 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z'],
+            ];
+        @endphp
+
+        {{-- Abas: DESKTOP (barra de pílulas) --}}
+        <div class="hidden md:flex gap-1 mb-6 p-1 rounded-xl w-fit"
              style="background: rgba(15,23,42,0.06); border: 1px solid var(--color-border);">
-            @foreach([
-                ['key' => 'conta',       'label' => 'Minha Conta',  'dono' => false],
-                ['key' => 'plataforma',  'label' => 'Plataforma',   'dono' => true],
-                ['key' => 'equipe',      'label' => 'Equipe',       'dono' => true],
-                ['key' => 'assinatura',  'label' => 'Assinatura',   'dono' => true],
-            ] as $aba)
+            @foreach($abas as $aba)
                 <button @click="tab = '{{ $aba['key'] }}'"
                         :class="tab === '{{ $aba['key'] }}' ? 'bg-white text-void shadow-sm' : 'text-muted hover:text-void'"
                         class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all">
@@ -32,6 +36,38 @@
                     @if($aba['key'] === 'equipe')
                         <span x-show="pendentes.length > 0"
                               class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
+                              x-text="pendentes.length"></span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
+
+        {{-- Abas: MOBILE (grade de ícones 2×2) --}}
+        <div class="md:hidden grid grid-cols-2 gap-2 mb-6">
+            @foreach($abas as $aba)
+                <button @click="tab = '{{ $aba['key'] }}'"
+                        :class="tab === '{{ $aba['key'] }}' ? 'bg-white shadow-sm border-transparent' : 'bg-surface border-border'"
+                        class="relative flex items-center gap-2.5 px-3 py-3 rounded-xl border transition-all text-left">
+                    <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+                          :class="tab === '{{ $aba['key'] }}' ? 'bg-spark/10' : 'bg-white'"
+                          :style="tab === '{{ $aba['key'] }}' ? '' : 'border:1px solid var(--color-border)'">
+                        <svg class="w-4 h-4 transition-colors"
+                             :class="tab === '{{ $aba['key'] }}' ? 'text-spark' : 'text-muted'"
+                             fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $aba['icon'] }}"/>
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-sm font-medium leading-tight"
+                              :class="tab === '{{ $aba['key'] }}' ? 'text-void' : 'text-muted'">{{ $aba['label'] }}</span>
+                        @if($aba['dono'])
+                            <span class="inline-block mt-0.5 text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                                  style="background: rgba(124,58,237,0.1); color: #7C3AED;">Dono</span>
+                        @endif
+                    </span>
+                    @if($aba['key'] === 'equipe')
+                        <span x-show="pendentes.length > 0"
+                              class="absolute top-2 right-2 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
                               x-text="pendentes.length"></span>
                     @endif
                 </button>
@@ -291,7 +327,7 @@
                 <h3 class="font-semibold text-void text-base mb-4">Horário de funcionamento</h3>
                 <div class="space-y-2">
                     <template x-for="(dia, idx) in plataforma.horario" :key="idx">
-                        <div class="flex items-center gap-4 py-2 rounded-lg px-2 transition-colors"
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 rounded-lg px-2 transition-colors"
                              :class="dia.ativo ? '' : 'opacity-40'">
                             <button type="button"
                                     @click="dia.ativo = !dia.ativo"
@@ -300,8 +336,8 @@
                                 <span :class="dia.ativo ? 'translate-x-4' : 'translate-x-1'"
                                       class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
                             </button>
-                            <span class="text-sm text-void w-32 flex-shrink-0" x-text="dia.dia"></span>
-                            <div class="flex items-center gap-2 flex-1">
+                            <span class="text-sm text-void w-24 sm:w-32 flex-shrink-0" x-text="dia.dia"></span>
+                            <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-1 pl-12 sm:pl-0">
                                 <input type="time" x-model="dia.abertura" :disabled="!dia.ativo"
                                        class="rounded-lg border border-border px-2 py-1.5 text-sm text-void focus:outline-none focus:border-spark transition-colors disabled:cursor-not-allowed">
                                 <span class="text-muted text-xs">até</span>
@@ -402,19 +438,21 @@
                     </div>
                     <div class="space-y-3">
                         <template x-for="(p, idx) in pendentes" :key="p.id">
-                            <div class="flex items-center gap-4 p-4 rounded-xl"
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl"
                                  style="background: rgba(248,250,252,0.8); border: 1px solid var(--color-border);">
-                                <div class="w-10 h-10 rounded-full bg-ocean/20 flex items-center justify-center flex-shrink-0">
-                                    <span class="text-ocean font-bold text-sm" x-text="p.nome.charAt(0)"></span>
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <div class="w-10 h-10 rounded-full bg-ocean/20 flex items-center justify-center flex-shrink-0">
+                                        <span class="text-ocean font-bold text-sm" x-text="p.nome.charAt(0)"></span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-void" x-text="p.nome"></p>
+                                        <p class="text-xs text-muted truncate" x-text="p.email"></p>
+                                        <p class="text-xs text-muted mt-0.5" x-text="'Cadastrado em ' + formatarData(p.data)"></p>
+                                    </div>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-void" x-text="p.nome"></p>
-                                    <p class="text-xs text-muted" x-text="p.email"></p>
-                                    <p class="text-xs text-muted mt-0.5" x-text="'Cadastrado em ' + formatarData(p.data)"></p>
-                                </div>
-                                <div class="flex items-center gap-2 flex-shrink-0">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-shrink-0">
                                     <select x-model="p._papel"
-                                            class="rounded-lg border border-border px-2 py-1.5 text-xs text-void focus:outline-none focus:border-spark transition-colors">
+                                            class="w-full sm:w-auto rounded-lg border border-border px-2 py-1.5 text-xs text-void focus:outline-none focus:border-spark transition-colors">
                                         <option value="">Selecionar papel</option>
                                         <option value="gerente">Gerente</option>
                                         <option value="mecanico">Mecânico</option>
@@ -422,21 +460,23 @@
                                         <option value="financeiro">Financeiro</option>
                                         <option value="vendedor">Vendedor</option>
                                     </select>
-                                    <button @click="aprovarMembro(idx)"
-                                            :disabled="!p._papel"
-                                            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                            style="background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.2);"
-                                            onmouseover="if(!this.disabled){this.style.background='rgba(16,185,129,0.2)'}"
-                                            onmouseout="this.style.background='rgba(16,185,129,0.1)'">
-                                        Aprovar
-                                    </button>
-                                    <button @click="rejeitarMembro(idx)"
-                                            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-                                            style="background: rgba(239,68,68,0.08); color: #EF4444; border: 1px solid rgba(239,68,68,0.15);"
-                                            onmouseover="this.style.background='rgba(239,68,68,0.15)'"
-                                            onmouseout="this.style.background='rgba(239,68,68,0.08)'">
-                                        Rejeitar
-                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="aprovarMembro(idx)"
+                                                :disabled="!p._papel"
+                                                class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                                style="background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.2);"
+                                                onmouseover="if(!this.disabled){this.style.background='rgba(16,185,129,0.2)'}"
+                                                onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+                                            Aprovar
+                                        </button>
+                                        <button @click="rejeitarMembro(idx)"
+                                                class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                                                style="background: rgba(239,68,68,0.08); color: #EF4444; border: 1px solid rgba(239,68,68,0.15);"
+                                                onmouseover="this.style.background='rgba(239,68,68,0.15)'"
+                                                onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+                                            Rejeitar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -457,7 +497,8 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
+                {{-- DESKTOP: tabela --}}
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--color-border);">
@@ -511,6 +552,41 @@
                             </template>
                         </tbody>
                     </table>
+                </div>
+
+                {{-- MOBILE: cards --}}
+                <div class="md:hidden space-y-2">
+                    <template x-for="m in membros" :key="m.id">
+                        <div class="rounded-xl border border-border p-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                                     :style="'background:' + papelCor(m.papel) + '20'">
+                                    <span class="text-sm font-bold" :style="'color:' + papelCor(m.papel)" x-text="m.nome.charAt(0)"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-void text-sm truncate" x-text="m.nome"></p>
+                                    <p class="text-xs text-muted truncate" x-text="m.email"></p>
+                                </div>
+                                <template x-if="m.papel !== 'dono'">
+                                    <button @click="sheetMembroId = m.id"
+                                            class="w-8 h-8 rounded-lg border border-border text-muted flex items-center justify-center flex-shrink-0 active:bg-surface"
+                                            aria-label="Ações do membro">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4z"/>
+                                        </svg>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2.5">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                                      :style="'background:' + papelCor(m.papel) + '18; color:' + papelCor(m.papel)"
+                                      x-text="papelLabel(m.papel)"></span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                                      :class="m.status === 'ativo' ? 'text-emerald-700 bg-emerald-50' : 'text-muted bg-surface'"
+                                      x-text="m.status === 'ativo' ? 'Ativo' : 'Inativo'"></span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -599,7 +675,9 @@
             {{-- Faturas --}}
             <div class="bg-white rounded-xl border border-border p-6">
                 <h3 class="font-semibold text-void text-base mb-4">Histórico de faturas</h3>
-                <table class="w-full text-sm">
+
+                {{-- DESKTOP: tabela --}}
+                <table class="hidden md:table w-full text-sm">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border);">
                             <th class="text-left text-xs font-semibold text-muted uppercase tracking-wide pb-3 pr-4">Data</th>
@@ -632,6 +710,34 @@
                         </template>
                     </tbody>
                 </table>
+
+                {{-- MOBILE: cards --}}
+                <div class="md:hidden space-y-2">
+                    <template x-for="f in assinatura.faturas" :key="f.data">
+                        <div class="rounded-xl border border-border p-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-void" x-text="formatarData(f.data)"></p>
+                                    <p class="text-xs text-muted" x-text="f.periodo"></p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-sm font-mono font-medium text-void" x-text="'R$ ' + f.valor.toFixed(2).replace('.', ',')"></p>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-emerald-700 bg-emerald-50 mt-0.5"
+                                          x-text="f.status"></span>
+                                </div>
+                            </div>
+                            <div class="mt-2.5 pt-2.5" style="border-top:1px solid var(--color-border);">
+                                <button @click="mostrarToast('PDF disponível em breve')"
+                                        class="text-xs text-spark font-medium transition-colors flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    Baixar PDF
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
                 <p class="text-xs text-muted mt-4">Faturas geradas automaticamente a cada ciclo de cobrança.</p>
             </div>
 
@@ -705,13 +811,13 @@
                  x-transition:leave-end="opacity-0"
                  class="fixed inset-0 z-40 flex items-center justify-center p-4">
                 <div @click="modalUpgradeAberto = false" class="absolute inset-0 bg-void/50"></div>
-                <div class="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6"
+                <div class="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto"
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0 scale-95"
                      x-transition:enter-end="opacity-100 scale-100">
                     <h3 class="font-display font-semibold text-void text-lg mb-1">Planos disponíveis</h3>
                     <p class="text-muted text-sm mb-6">Escolha o plano ideal para sua oficina.</p>
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         @foreach([
                             ['nome' => 'Básico',        'valor' => '79,90',  'recursos' => ['Até 2 usuários', '50 OSes/mês', 'Portal do cliente']],
                             ['nome' => 'Profissional',  'valor' => '149,90', 'recursos' => ['Usuários ilimitados', 'OSes ilimitadas', 'Garantias', 'Estoque', 'Relatórios']],
@@ -749,6 +855,41 @@
             </div>
         </template>
 
+        {{-- ============================================================ --}}
+        {{-- BOTTOM SHEET: AÇÕES DO MEMBRO (mobile) --}}
+        {{-- ============================================================ --}}
+        <div x-show="sheetMembroId !== null" x-cloak
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="sheetMembroId = null"
+             class="fixed inset-0 z-40 md:hidden" style="background:rgba(0,0,0,0.5);"></div>
+        <div x-show="sheetMembroId !== null" x-cloak
+             x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
+             class="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl px-4 pb-8 pt-3 md:hidden" style="background:#fff;">
+            <div class="flex justify-center mb-3">
+                <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
+            </div>
+            <p class="text-center font-semibold text-void text-sm mb-1" x-text="membroSheet().nome"></p>
+            <p class="text-center text-xs text-muted mb-4" x-text="papelLabel(membroSheet().papel)"></p>
+            <div class="space-y-2">
+                <button @click="salvar('membro'); sheetMembroId = null"
+                        class="w-full py-3 rounded-xl text-sm font-semibold text-spark transition-colors"
+                        style="border:1px solid var(--color-border);background:var(--color-surface);">
+                    Editar papel
+                </button>
+                <button @click="salvar('membro'); sheetMembroId = null"
+                        class="w-full py-3 rounded-xl text-sm font-semibold text-white"
+                        style="background:#ef4444;">
+                    Desativar
+                </button>
+                <button @click="sheetMembroId = null"
+                        class="w-full py-3 rounded-xl text-sm font-medium text-muted transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+
         {{-- Toast --}}
         <div x-show="toastVisible"
              x-transition:enter="transition ease-out duration-200"
@@ -780,6 +921,7 @@
 
                 modalConviteAberto: false,
                 modalUpgradeAberto: false,
+                sheetMembroId: null,
                 convite: { email: '', papel: '' },
 
                 toastVisible: false,
@@ -819,6 +961,10 @@
 
                 papelCor(papel)   { return this.papelCores[papel]  || '#94A3B8'; },
                 papelLabel(papel) { return this.papelLabels[papel] || papel; },
+
+                membroSheet() {
+                    return this.membros.find(m => m.id === this.sheetMembroId) || {};
+                },
 
                 salvar(contexto) {
                     const msgs = {
