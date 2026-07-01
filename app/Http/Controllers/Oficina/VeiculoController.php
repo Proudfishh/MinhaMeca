@@ -33,7 +33,12 @@ class VeiculoController extends Controller
 
         $etapas = MockOsService::ETAPAS;
 
-        return view('oficina.veiculos.index', compact('veiculos', 'etapas'));
+        $clientes = array_map(
+            fn ($c) => ['id' => $c['id'], 'nome' => $c['nome']],
+            $this->clienteService->all($tenantId)
+        );
+
+        return view('oficina.veiculos.index', compact('veiculos', 'etapas', 'clientes'));
     }
 
     public function show(int $id)
