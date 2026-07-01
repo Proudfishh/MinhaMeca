@@ -636,12 +636,6 @@
                         Fazer upgrade
                     </button>
                 </div>
-                <div class="mt-4 pt-4 flex justify-end" style="border-top: 1px solid var(--color-border);">
-                    <button @click="modalCancelarAberto = true"
-                            class="text-xs font-medium text-muted hover:text-red-500 transition-colors">
-                        Cancelar assinatura
-                    </button>
-                </div>
             </div>
 
             {{-- Pagamento --}}
@@ -745,6 +739,22 @@
                     </template>
                 </div>
                 <p class="text-xs text-muted mt-4">Faturas geradas automaticamente a cada ciclo de cobrança.</p>
+            </div>
+
+            {{-- Zona de risco --}}
+            <div class="rounded-xl p-4 flex items-center justify-between gap-4"
+                 style="border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.03);">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-void">Cancelar assinatura</p>
+                    <p class="text-xs text-muted mt-0.5">Encerra ao fim do período já pago. Você mantém o acesso até lá.</p>
+                </div>
+                <button @click="modalCancelarAberto = true"
+                        class="flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+                        style="color:#ef4444; border:1px solid rgba(239,68,68,0.35);"
+                        onmouseover="this.style.background='rgba(239,68,68,0.06)'"
+                        onmouseout="this.style.background='transparent'">
+                    Cancelar
+                </button>
             </div>
 
         </div>{{-- /assinatura --}}
