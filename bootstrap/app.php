@@ -27,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.oficina' => \App\Http\Middleware\EnsureOficinaAuth::class,
             'auth.cliente' => \App\Http\Middleware\EnsureClienteAuth::class,
             'tenant'       => \App\Http\Middleware\TenantMiddleware::class,
+            'permission'   => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role'         => \Spatie\Permission\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
