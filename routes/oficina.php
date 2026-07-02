@@ -21,9 +21,11 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/os/{id}', [OsController::class, 'show'])->name('os.show')->middleware('permission:os.ver');
 
     Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index')->middleware('permission:clientes.ver');
+    Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store')->middleware('permission:clientes.criar');
     Route::get('/clientes/{id}', [ClienteController::class, 'show'])->name('clientes.show')->middleware('permission:clientes.ver');
 
     Route::get('/veiculos', [VeiculoController::class, 'index'])->name('veiculos.index')->middleware('permission:veiculos.ver');
+    Route::post('/veiculos', [VeiculoController::class, 'store'])->name('veiculos.store')->middleware('permission:veiculos.criar');
     Route::get('/veiculos/{id}', [VeiculoController::class, 'show'])->name('veiculos.show')->middleware('permission:veiculos.ver');
 
     Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index')->middleware('permission:estoque.ver');

@@ -35,6 +35,16 @@
                    class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-white text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
         </div>
 
+        @if(session('sucesso'))
+            <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4 text-sm font-medium"
+                 style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#059669;">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ session('sucesso') }}
+            </div>
+        @endif
+
         {{-- ==================== LISTA ==================== --}}
         <template x-if="veiculosFiltrados.length === 0">
             <div class="flex flex-col items-center justify-center py-20 text-center">
@@ -75,7 +85,7 @@
                                           style="background: rgba(0,0,0,0.05); color: var(--color-muted);"
                                           x-text="v.placa"></span>
                                 </div>
-                                <p class="text-muted text-xs truncate" x-text="v.ano + ' · ' + v.cor + ' · ' + v.cliente"></p>
+                                <p class="text-muted text-xs truncate" x-text="v.ano + ' · ' + v.cor + ' · ' + v.cliente_nome"></p>
                                 <div class="mt-1.5 flex items-center gap-2">
                                     <template x-if="v.os_ativa">
                                         <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium"
@@ -127,7 +137,7 @@
                                     <span class="font-mono text-sm text-void" x-text="v.placa"></span>
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <span class="text-void text-sm" x-text="v.cliente"></span>
+                                    <span class="text-void text-sm" x-text="v.cliente_nome"></span>
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     <span class="font-mono text-sm text-void" x-text="v.total_os"></span>
@@ -165,22 +175,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
         </button>
-
-        {{-- ==================== TOAST ==================== --}}
-        <div x-show="toastVisible" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-void text-white text-sm font-medium"
-             style="pointer-events:none;">
-            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-            <span x-text="toastMsg"></span>
-        </div>
 
         {{-- ==================== MODAL NOVO VEÍCULO ==================== --}}
         <template x-teleport="body">
@@ -220,18 +214,30 @@
                     </div>
 
                     {{-- Body do modal --}}
-                    <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                    <form method="POST" action="{{ route('oficina.veiculos.store') }}" class="px-6 py-5 space-y-4 overflow-y-auto">
+                        @csrf
+
+                        @if ($errors->any())
+                            <div class="rounded-lg px-3 py-2 text-xs text-red-600"
+                                 style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+                                <ul class="list-disc pl-4 space-y-0.5">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         {{-- Marca / Modelo --}}
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Marca <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.marca" placeholder="Ex: Honda"
+                                <input type="text" name="marca" x-model="form.marca" required placeholder="Ex: Honda"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Modelo <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.modelo" placeholder="Ex: Civic"
+                                <input type="text" name="modelo" x-model="form.modelo" required placeholder="Ex: Civic"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                         </div>
@@ -240,17 +246,17 @@
                         <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Placa <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.placa" placeholder="ABC-1234"
+                                <input type="text" name="placa" x-model="form.placa" required placeholder="ABC-1234"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors uppercase">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Ano</label>
-                                <input type="text" inputmode="numeric" x-model="form.ano" placeholder="2020" maxlength="4"
+                                <input type="text" name="ano" inputmode="numeric" x-model="form.ano" placeholder="2020" maxlength="4"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Cor</label>
-                                <input type="text" x-model="form.cor" placeholder="Prata"
+                                <input type="text" name="cor" x-model="form.cor" placeholder="Prata"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                         </div>
@@ -260,7 +266,7 @@
                             <label class="block text-xs font-medium text-muted mb-1.5">
                                 Vincular a um cliente <span class="text-[10px] font-normal text-muted/70">(opcional — pode vincular depois)</span>
                             </label>
-                            <select x-model="form.cliente_id"
+                            <select name="cliente_id" x-model="form.cliente_id"
                                     class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 <option value="">Sem cliente</option>
                                 <template x-for="c in clientes" :key="c.id">
@@ -294,12 +300,12 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">Chassi</label>
-                                    <input type="text" x-model="form.chassi" placeholder="9BWZZZ..."
+                                    <input type="text" name="chassi" x-model="form.chassi" placeholder="9BWZZZ..."
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors uppercase">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">KM atual</label>
-                                    <input type="text" inputmode="numeric" x-model="form.km" placeholder="0"
+                                    <input type="text" name="km" inputmode="numeric" x-model="form.km" placeholder="0"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                             </div>
@@ -308,7 +314,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">Combustível</label>
-                                    <select x-model="form.combustivel"
+                                    <select name="combustivel" x-model="form.combustivel"
                                             class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                         <option value="">—</option>
                                         <option>Flex</option>
@@ -320,7 +326,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">Câmbio</label>
-                                    <select x-model="form.cambio"
+                                    <select name="cambio" x-model="form.cambio"
                                             class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                         <option value="">—</option>
                                         <option>Manual</option>
@@ -330,8 +336,6 @@
                             </div>
                         </div>
 
-                    </div>
-
                     {{-- Footer do modal --}}
                     <div class="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0"
                          style="border-top: 1px solid var(--color-border);">
@@ -339,7 +343,7 @@
                                 class="px-4 py-2 rounded-lg border border-border text-void text-sm font-medium hover:bg-surface transition-colors">
                             Cancelar
                         </button>
-                        <button type="button" @click="salvarVeiculo()"
+                        <button type="submit"
                                 :disabled="!formValido"
                                 :class="formValido
                                     ? 'bg-spark text-white hover:bg-spark/90 cursor-pointer'
@@ -348,6 +352,7 @@
                             Cadastrar
                         </button>
                     </div>
+                    </form>
 
                 </div>
             </div>
@@ -365,9 +370,6 @@
 
                 modalAberto: false,
                 mostrarMais: false,
-                toastVisible: false,
-                toastMsg: '',
-                _toastTimer: null,
 
                 form: {
                     marca: '', modelo: '', placa: '', ano: '', cor: '',
@@ -378,6 +380,23 @@
                     this.veiculos = window.__veiculos || [];
                     this.etapas   = window.__etapas   || {};
                     this.clientes = window.__clientes || [];
+
+                    @if ($errors->any())
+                        this.form = {
+                            marca:       {!! json_encode(old('marca', '')) !!},
+                            modelo:      {!! json_encode(old('modelo', '')) !!},
+                            placa:       {!! json_encode(old('placa', '')) !!},
+                            ano:         {!! json_encode(old('ano', '')) !!},
+                            cor:         {!! json_encode(old('cor', '')) !!},
+                            cliente_id:  {!! json_encode(old('cliente_id', '')) !!},
+                            chassi:      {!! json_encode(old('chassi', '')) !!},
+                            km:          {!! json_encode(old('km', '')) !!},
+                            combustivel: {!! json_encode(old('combustivel', '')) !!},
+                            cambio:      {!! json_encode(old('cambio', '')) !!},
+                        };
+                        this.mostrarMais = true;
+                        this.modalAberto = true;
+                    @endif
                 },
 
                 get veiculosFiltrados() {
@@ -386,7 +405,7 @@
                     return this.veiculos.filter(v =>
                         v.placa.toLowerCase().includes(q) ||
                         (v.marca + ' ' + v.modelo).toLowerCase().includes(q) ||
-                        (v.cliente || '').toLowerCase().includes(q)
+                        (v.cliente_nome || '').toLowerCase().includes(q)
                     );
                 },
 
@@ -411,39 +430,6 @@
 
                 fecharModal() {
                     this.modalAberto = false;
-                },
-
-                salvarVeiculo() {
-                    if (!this.formValido) return;
-
-                    const clienteSel = this.clientes.find(c => String(c.id) === String(this.form.cliente_id));
-
-                    this.veiculos.push({
-                        id:          Date.now(),
-                        cliente_id:  clienteSel ? clienteSel.id : null,
-                        cliente:     clienteSel ? clienteSel.nome : 'Sem cliente',
-                        marca:       this.form.marca.trim(),
-                        modelo:      this.form.modelo.trim(),
-                        placa:       this.form.placa.trim().toUpperCase(),
-                        ano:         this.form.ano.trim() || '—',
-                        cor:         this.form.cor.trim() || '—',
-                        chassi:      this.form.chassi.trim().toUpperCase() || null,
-                        km:          this.form.km.trim() ? parseInt(this.form.km.replace(/\D/g, ''), 10) : null,
-                        combustivel: this.form.combustivel || null,
-                        cambio:      this.form.cambio || null,
-                        total_os:    0,
-                        os_ativa:    null,
-                    });
-
-                    this.fecharModal();
-                    this.mostrarToast('Veículo cadastrado com sucesso!');
-                },
-
-                mostrarToast(msg) {
-                    this.toastMsg = msg;
-                    this.toastVisible = true;
-                    clearTimeout(this._toastTimer);
-                    this._toastTimer = setTimeout(() => { this.toastVisible = false; }, 3000);
                 },
             };
         }

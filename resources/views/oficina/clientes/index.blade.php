@@ -35,6 +35,16 @@
                    class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-white text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
         </div>
 
+        @if(session('sucesso'))
+            <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4 text-sm font-medium"
+                 style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#059669;">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ session('sucesso') }}
+            </div>
+        @endif
+
         {{-- ==================== EMPTY: sem clientes ==================== --}}
         <template x-if="clientes.length === 0">
             <div class="flex flex-col items-center justify-center py-20 text-center">
@@ -123,22 +133,6 @@
             </div>
         </template>
 
-        {{-- ==================== TOAST ==================== --}}
-        <div x-show="toastVisible"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-void text-white text-sm font-medium"
-             style="pointer-events:none;">
-            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-            <span x-text="toastMsg"></span>
-        </div>
-
         {{-- FAB mobile --}}
         <button type="button" @click="abrirModal()"
                 class="md:hidden fixed right-4 z-30 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg"
@@ -186,10 +180,23 @@
                     </div>
 
                     {{-- Body do modal --}}
-                    <div class="px-6 py-5 space-y-4">
+                    <form method="POST" action="{{ route('oficina.clientes.store') }}" class="px-6 py-5 space-y-4">
+                        @csrf
+
+                        @if ($errors->any())
+                            <div class="rounded-lg px-3 py-2 text-xs text-red-600"
+                                 style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+                                <ul class="list-disc pl-4 space-y-0.5">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         {{-- Toggle PF / PJ --}}
                         <div class="flex gap-2">
+                            <input type="hidden" name="tipo" x-model="form.tipo">
                             <button type="button" @click="form.tipo = 'pf'"
                                     class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
                                     :class="form.tipo === 'pf'
@@ -212,7 +219,7 @@
                                 <span x-text="form.tipo === 'pj' ? 'Razão Social' : 'Nome completo'"></span>
                                 <span class="text-spark">*</span>
                             </label>
-                            <input type="text" x-model="form.nome"
+                            <input type="text" name="nome" x-model="form.nome" required
                                    :placeholder="form.tipo === 'pj' ? 'Ex: Auto Peças Ltda' : 'Ex: João da Silva'"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
@@ -221,17 +228,17 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div x-show="form.tipo === 'pf'">
                                 <label class="block text-xs font-medium text-muted mb-1.5">CPF <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.cpf" placeholder="000.000.000-00"
+                                <input type="text" name="cpf" x-model="form.cpf" placeholder="000.000.000-00"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                             <div x-show="form.tipo === 'pj'">
                                 <label class="block text-xs font-medium text-muted mb-1.5">CNPJ <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.cnpj" placeholder="00.000.000/0000-00"
+                                <input type="text" name="cnpj" x-model="form.cnpj" placeholder="00.000.000/0000-00"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-muted mb-1.5">Telefone <span class="text-spark">*</span></label>
-                                <input type="text" x-model="form.telefone" placeholder="(00) 00000-0000"
+                                <input type="text" name="telefone" x-model="form.telefone" required placeholder="(00) 00000-0000"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
                         </div>
@@ -239,7 +246,7 @@
                         {{-- E-mail --}}
                         <div>
                             <label class="block text-xs font-medium text-muted mb-1.5">E-mail</label>
-                            <input type="email" x-model="form.email" placeholder="email@exemplo.com"
+                            <input type="email" name="email" x-model="form.email" placeholder="email@exemplo.com"
                                    class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                         </div>
 
@@ -267,7 +274,7 @@
                             {{-- Nome do contato — só PJ --}}
                             <div x-show="form.tipo === 'pj'">
                                 <label class="block text-xs font-medium text-muted mb-1.5">Nome do contato responsável</label>
-                                <input type="text" x-model="form.nome_contato" placeholder="Ex: João Silva"
+                                <input type="text" name="nome_contato" x-model="form.nome_contato" placeholder="Ex: João Silva"
                                        class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                             </div>
 
@@ -275,47 +282,45 @@
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="col-span-1">
                                     <label class="block text-xs font-medium text-muted mb-1.5">CEP</label>
-                                    <input type="text" x-model="form.cep" placeholder="00000-000"
+                                    <input type="text" name="cep" x-model="form.cep" placeholder="00000-000"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                                 <div class="col-span-2">
                                     <label class="block text-xs font-medium text-muted mb-1.5">Logradouro</label>
-                                    <input type="text" x-model="form.logradouro" placeholder="Rua, Av., Travessa..."
+                                    <input type="text" name="logradouro" x-model="form.logradouro" placeholder="Rua, Av., Travessa..."
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">Número</label>
-                                    <input type="text" x-model="form.numero" placeholder="123"
+                                    <input type="text" name="numero" x-model="form.numero" placeholder="123"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                                 <div class="col-span-2">
                                     <label class="block text-xs font-medium text-muted mb-1.5">Complemento</label>
-                                    <input type="text" x-model="form.complemento" placeholder="Apto, Sala, Bloco..."
+                                    <input type="text" name="complemento" x-model="form.complemento" placeholder="Apto, Sala, Bloco..."
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                             </div>
                             <div class="grid grid-cols-5 gap-3">
                                 <div class="col-span-2">
                                     <label class="block text-xs font-medium text-muted mb-1.5">Bairro</label>
-                                    <input type="text" x-model="form.bairro" placeholder="Bairro"
+                                    <input type="text" name="bairro" x-model="form.bairro" placeholder="Bairro"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                                 <div class="col-span-2">
                                     <label class="block text-xs font-medium text-muted mb-1.5">Cidade</label>
-                                    <input type="text" x-model="form.cidade" placeholder="Cidade"
+                                    <input type="text" name="cidade" x-model="form.cidade" placeholder="Cidade"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-muted mb-1.5">UF</label>
-                                    <input type="text" x-model="form.uf" placeholder="SP" maxlength="2"
+                                    <input type="text" name="uf" x-model="form.uf" placeholder="SP" maxlength="2"
                                            class="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-sm text-void placeholder-muted focus:outline-none focus:ring-2 focus:border-spark transition-colors uppercase">
                                 </div>
                             </div>
                         </div>
-
-                    </div>
 
                     {{-- Footer do modal --}}
                     <div class="flex items-center justify-end gap-3 px-6 py-4"
@@ -324,7 +329,7 @@
                                 class="px-4 py-2 rounded-lg border border-border text-void text-sm font-medium hover:bg-surface transition-colors">
                             Cancelar
                         </button>
-                        <button type="button" @click="salvarCliente()"
+                        <button type="submit"
                                 :disabled="!formValido"
                                 :class="formValido
                                     ? 'bg-spark text-white hover:bg-spark/90 cursor-pointer'
@@ -333,6 +338,7 @@
                             Cadastrar
                         </button>
                     </div>
+                    </form>
 
                 </div>
             </div>
@@ -350,9 +356,6 @@
 
                 modalAberto: false,
                 mostrarAdicionais: false,
-                toastVisible: false,
-                toastMsg: '',
-                _toastTimer: null,
 
                 form: {
                     tipo: 'pf',
@@ -389,6 +392,26 @@
                         testes:      'Testes',
                         finalizacao: 'Finalização',
                     };
+
+                    @if ($errors->any())
+                        this.form = {
+                            tipo:         {!! json_encode(old('tipo', 'pf')) !!},
+                            nome:         {!! json_encode(old('nome', '')) !!},
+                            cpf:          {!! json_encode(old('cpf', '')) !!},
+                            cnpj:         {!! json_encode(old('cnpj', '')) !!},
+                            telefone:     {!! json_encode(old('telefone', '')) !!},
+                            email:        {!! json_encode(old('email', '')) !!},
+                            nome_contato: {!! json_encode(old('nome_contato', '')) !!},
+                            cep:          {!! json_encode(old('cep', '')) !!},
+                            logradouro:   {!! json_encode(old('logradouro', '')) !!},
+                            numero:       {!! json_encode(old('numero', '')) !!},
+                            complemento:  {!! json_encode(old('complemento', '')) !!},
+                            bairro:       {!! json_encode(old('bairro', '')) !!},
+                            cidade:       {!! json_encode(old('cidade', '')) !!},
+                            uf:           {!! json_encode(old('uf', '')) !!},
+                        };
+                        this.modalAberto = true;
+                    @endif
                 },
 
                 get clientesFiltrados() {
@@ -420,42 +443,6 @@
 
                 fecharModal() {
                     this.modalAberto = false;
-                },
-
-                salvarCliente() {
-                    if (!this.formValido) return;
-
-                    const novoId = Date.now();
-                    this.clientes.push({
-                        id:             novoId,
-                        tipo:           this.form.tipo,
-                        nome:           this.form.nome.trim(),
-                        cpf:            this.form.tipo === 'pf' ? this.form.cpf.trim() : null,
-                        cnpj:           this.form.tipo === 'pj' ? this.form.cnpj.trim() : null,
-                        nome_contato:   this.form.nome_contato.trim() || null,
-                        telefone:       this.form.telefone.trim(),
-                        email:          this.form.email.trim() || null,
-                        cep:            this.form.cep.trim() || null,
-                        logradouro:     this.form.logradouro.trim() || null,
-                        numero:         this.form.numero.trim() || null,
-                        complemento:    this.form.complemento.trim() || null,
-                        bairro:         this.form.bairro.trim() || null,
-                        cidade:         this.form.cidade.trim() || null,
-                        uf:             this.form.uf.trim().toUpperCase() || null,
-                        total_os:       0,
-                        os_ativa:       null,
-                        total_veiculos: 0,
-                    });
-
-                    this.fecharModal();
-                    this.mostrarToast('Cliente cadastrado com sucesso!');
-                },
-
-                mostrarToast(msg) {
-                    this.toastMsg = msg;
-                    this.toastVisible = true;
-                    clearTimeout(this._toastTimer);
-                    this._toastTimer = setTimeout(() => { this.toastVisible = false; }, 3000);
                 },
 
                 initiais(nome) {
