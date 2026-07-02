@@ -10,6 +10,7 @@ use App\Http\Controllers\Oficina\FinanceiroController;
 use App\Http\Controllers\Oficina\GarantiaController;
 use App\Http\Controllers\Oficina\ConfiguracoesController;
 use App\Http\Controllers\Oficina\OrcamentosController;
+use App\Http\Controllers\Oficina\EquipeController;
 
 Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.ver');
@@ -39,4 +40,10 @@ Route::middleware(['auth.oficina', 'tenant'])->group(function () {
     Route::get('/garantias', [GarantiaController::class, 'index'])->name('garantias.index')->middleware('permission:garantias.ver');
 
     Route::get('/configuracoes', [ConfiguracoesController::class, 'index'])->name('configuracoes.index')->middleware('permission:configuracoes.ver');
+
+    Route::middleware('permission:configuracoes.editar')->prefix('configuracoes/equipe')->name('equipe.')->group(function () {
+        Route::post('/', [EquipeController::class, 'store'])->name('store');
+        Route::put('/{user}', [EquipeController::class, 'update'])->name('update');
+        Route::patch('/{user}/toggle', [EquipeController::class, 'toggleAtivo'])->name('toggle');
+    });
 });

@@ -2,6 +2,7 @@
 
     <script>
         window.__config = {!! json_encode($config, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
+        window.__papelModulos = {!! json_encode($papelModulos, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
     </script>
 
     <div x-data="configPage()" x-init="init()">
@@ -418,6 +419,23 @@
         {{-- ============================================================ --}}
         <div x-show="tab === 'equipe'" class="space-y-6">
 
+            @if(session('sucesso'))
+                <div class="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium"
+                     style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#059669;">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ session('sucesso') }}
+                </div>
+            @endif
+
+            @error('equipe')
+                <div class="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium"
+                     style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#dc2626;">
+                    {{ $message }}
+                </div>
+            @enderror
+
             {{-- Membros --}}
             <div class="bg-white rounded-xl border border-border p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -429,6 +447,18 @@
                         </svg>
                         Cadastrar funcionário
                     </button>
+                </div>
+
+                @php $papelCores = ['Gerente' => '#3B82F6', 'Recepção' => '#06B6D4', 'Mecânico' => '#F59E0B']; @endphp
+
+                {{-- Forms ocultos de ativar/desativar — referenciados via atributo form="" pelos botões desktop e mobile --}}
+                <div class="hidden">
+                    @foreach($membros as $m)
+                        <form id="toggle-form-{{ $m['id'] }}" method="POST" action="{{ route('oficina.equipe.toggle', $m['id']) }}">
+                            @csrf
+                            @method('PATCH')
+                        </form>
+                    @endforeach
                 </div>
 
                 {{-- DESKTOP: tabela --}}
@@ -443,84 +473,81 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="m in membros" :key="m.id">
+                            @foreach($membros as $m)
+                                @php $cor = $papelCores[$m['papel']] ?? '#94A3B8'; @endphp
                                 <tr style="border-bottom: 1px solid var(--color-border);" class="group">
                                     <td class="py-3 pr-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                                                 :style="'background:' + papelCor(m.papel) + '20'">
-                                                <span class="text-xs font-bold" :style="'color:' + papelCor(m.papel)" x-text="m.nome.charAt(0)"></span>
+                                                 style="background: {{ $cor }}20">
+                                                <span class="text-xs font-bold" style="color: {{ $cor }}">{{ mb_substr($m['nome'], 0, 1) }}</span>
                                             </div>
                                             <div>
-                                                <p class="font-medium text-void text-sm" x-text="m.nome"></p>
-                                                <p class="text-xs text-muted" x-text="m.email"></p>
+                                                <p class="font-medium text-void text-sm">{{ $m['nome'] }}</p>
+                                                <p class="text-xs text-muted">{{ $m['email'] }}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="py-3 pr-4">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                                              :style="'background:' + papelCor(m.papel) + '18; color:' + papelCor(m.papel)"
-                                              x-text="papelLabel(m.papel)"></span>
+                                              style="background: {{ $cor }}18; color: {{ $cor }}">{{ $m['papel'] ?? '—' }}</span>
                                     </td>
                                     <td class="py-3 pr-4">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                              :class="m.status === 'ativo' ? 'text-emerald-700 bg-emerald-50' : 'text-muted bg-surface'"
-                                              x-text="m.status === 'ativo' ? 'Ativo' : 'Inativo'"></span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $m['ativo'] ? 'text-emerald-700 bg-emerald-50' : 'text-muted bg-surface' }}">
+                                            {{ $m['ativo'] ? 'Ativo' : 'Inativo' }}
+                                        </span>
                                     </td>
                                     <td class="py-3 text-right">
-                                        <template x-if="m.papel !== 'dono'">
-                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button @click="salvar('membro')"
-                                                        class="text-xs text-spark hover:text-spark/70 font-medium transition-colors">
-                                                    Editar papel
-                                                </button>
-                                                <span class="text-border">·</span>
-                                                <button @click="salvar('membro')"
-                                                        class="text-xs text-muted hover:text-red-500 transition-colors">
-                                                    Desativar
-                                                </button>
-                                            </div>
-                                        </template>
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button @click="editandoId = {{ $m['id'] }}"
+                                                    class="text-xs text-spark hover:text-spark/70 font-medium transition-colors">
+                                                Editar acesso
+                                            </button>
+                                            <span class="text-border">·</span>
+                                            <button type="submit" form="toggle-form-{{ $m['id'] }}"
+                                                    onclick="return confirm('{{ $m['ativo'] ? 'Desativar' : 'Ativar' }} {{ $m['nome'] }}?')"
+                                                    class="text-xs text-muted hover:text-red-500 transition-colors">
+                                                {{ $m['ativo'] ? 'Desativar' : 'Ativar' }}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
-                            </template>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
 
                 {{-- MOBILE: cards --}}
                 <div class="md:hidden space-y-2">
-                    <template x-for="m in membros" :key="m.id">
+                    @foreach($membros as $m)
+                        @php $cor = $papelCores[$m['papel']] ?? '#94A3B8'; @endphp
                         <div class="rounded-xl border border-border p-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                                     :style="'background:' + papelCor(m.papel) + '20'">
-                                    <span class="text-sm font-bold" :style="'color:' + papelCor(m.papel)" x-text="m.nome.charAt(0)"></span>
+                                     style="background: {{ $cor }}20">
+                                    <span class="text-sm font-bold" style="color: {{ $cor }}">{{ mb_substr($m['nome'], 0, 1) }}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-medium text-void text-sm truncate" x-text="m.nome"></p>
-                                    <p class="text-xs text-muted truncate" x-text="m.email"></p>
+                                    <p class="font-medium text-void text-sm truncate">{{ $m['nome'] }}</p>
+                                    <p class="text-xs text-muted truncate">{{ $m['email'] }}</p>
                                 </div>
-                                <template x-if="m.papel !== 'dono'">
-                                    <button @click="sheetMembroId = m.id"
-                                            class="w-8 h-8 rounded-lg border border-border text-muted flex items-center justify-center flex-shrink-0 active:bg-surface"
-                                            aria-label="Ações do membro">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4z"/>
-                                        </svg>
-                                    </button>
-                                </template>
+                                <button @click="sheetMembroId = {{ $m['id'] }}"
+                                        class="w-8 h-8 rounded-lg border border-border text-muted flex items-center justify-center flex-shrink-0 active:bg-surface"
+                                        aria-label="Ações do membro">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4z"/>
+                                    </svg>
+                                </button>
                             </div>
                             <div class="flex items-center gap-2 mt-2.5">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                                      :style="'background:' + papelCor(m.papel) + '18; color:' + papelCor(m.papel)"
-                                      x-text="papelLabel(m.papel)"></span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                      :class="m.status === 'ativo' ? 'text-emerald-700 bg-emerald-50' : 'text-muted bg-surface'"
-                                      x-text="m.status === 'ativo' ? 'Ativo' : 'Inativo'"></span>
+                                      style="background: {{ $cor }}18; color: {{ $cor }}">{{ $m['papel'] ?? '—' }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $m['ativo'] ? 'text-emerald-700 bg-emerald-50' : 'text-muted bg-surface' }}">
+                                    {{ $m['ativo'] ? 'Ativo' : 'Inativo' }}
+                                </span>
                             </div>
                         </div>
-                    </template>
+                    @endforeach
                 </div>
             </div>
 
@@ -712,45 +739,116 @@
                      x-transition:enter-start="opacity-0 scale-95"
                      x-transition:enter-end="opacity-100 scale-100">
                     <h3 class="font-display font-semibold text-void text-lg mb-1">Cadastrar funcionário</h3>
-                    <p class="text-muted text-sm mb-5">O funcionário é adicionado direto à equipe, já ativo.</p>
-                    <div class="space-y-4">
+                    <p class="text-muted text-sm mb-5">O funcionário é adicionado direto à equipe, já ativo. O papel escolhido já define as telas que ele vai enxergar — dá pra ajustar depois em "Editar acesso".</p>
+                    <form method="POST" action="{{ route('oficina.equipe.store') }}" class="space-y-4">
+                        @csrf
                         <div>
                             <label class="block text-xs font-medium text-muted mb-1.5">Nome completo <span class="text-spark">*</span></label>
-                            <input type="text" x-model="func.nome" placeholder="Ex: João da Silva"
+                            <input type="text" name="nome" required placeholder="Ex: João da Silva"
                                    class="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-void focus:outline-none focus:border-spark transition-colors">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-muted mb-1.5">E-mail <span class="text-spark">*</span></label>
-                            <input type="email" x-model="func.email" placeholder="funcionario@email.com"
+                            <input type="email" name="email" required placeholder="funcionario@email.com"
                                    class="w-full rounded-lg border border-border px-3 py-2.5 text-sm focus:outline-none focus:border-spark transition-colors">
                         </div>
                         <div>
+                            <label class="block text-xs font-medium text-muted mb-1.5">Senha inicial <span class="text-spark">*</span></label>
+                            <input type="text" name="senha" required minlength="6" placeholder="Mínimo 6 caracteres"
+                                   class="w-full rounded-lg border border-border px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-spark transition-colors">
+                            <p class="text-xs text-muted mt-1">Compartilhe esta senha com o funcionário.</p>
+                        </div>
+                        <div>
                             <label class="block text-xs font-medium text-muted mb-1.5">Papel <span class="text-spark">*</span></label>
-                            <select x-model="func.papel"
+                            <select name="papel" required
                                     class="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-void focus:outline-none focus:border-spark transition-colors">
                                 <option value="">Selecionar papel</option>
-                                <option value="gerente">Gerente</option>
-                                <option value="mecanico">Mecânico</option>
-                                <option value="recepcao">Recepção</option>
-                                <option value="financeiro">Financeiro</option>
-                                <option value="vendedor">Vendedor</option>
+                                @foreach($papeis as $p)
+                                    <option value="{{ $p }}">{{ $p }}</option>
+                                @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="flex gap-3 mt-6">
-                        <button @click="modalFuncAberto = false"
-                                class="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-muted hover:text-void transition-colors">
-                            Cancelar
-                        </button>
-                        <button @click="cadastrarFuncionario()"
-                                :disabled="!func.nome || !func.email || !func.papel"
-                                class="flex-1 px-4 py-2.5 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                            Cadastrar
-                        </button>
-                    </div>
+                        <div class="flex gap-3 mt-2">
+                            <button type="button" @click="modalFuncAberto = false"
+                                    class="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-muted hover:text-void transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="flex-1 px-4 py-2.5 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors">
+                                Cadastrar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </template>
+
+        {{-- ============================================================ --}}
+        {{-- MODAL: EDITAR ACESSO (um por membro) --}}
+        {{-- ============================================================ --}}
+        @foreach($membros as $m)
+            <template x-teleport="body">
+                <div x-show="editandoId === {{ $m['id'] }}"
+                     x-data="{ papelSel: '{{ $m['papel'] }}' }"
+                     @keydown.escape.window="editandoId = null"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 z-40 flex items-center justify-center p-4">
+                    <div @click="editandoId = null" class="absolute inset-0 bg-void/50"></div>
+                    <div class="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100">
+                        <h3 class="font-display font-semibold text-void text-lg mb-1">Editar acesso</h3>
+                        <p class="text-muted text-sm mb-5">{{ $m['nome'] }} — o que ele pode ver no sistema.</p>
+                        <form method="POST" action="{{ route('oficina.equipe.update', $m['id']) }}" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1.5">Papel</label>
+                                <select name="papel" x-model="papelSel"
+                                        class="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-void focus:outline-none focus:border-spark transition-colors">
+                                    @foreach($papeis as $p)
+                                        <option value="{{ $p }}">{{ $p }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-muted mt-1">Define o pacote base de telas liberadas.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1.5">Acesso extra além do papel</label>
+                                <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                                    @foreach($modulos as $key => $def)
+                                        <label class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-surface transition-colors cursor-pointer">
+                                            <input type="checkbox" name="extras[]" value="{{ $key }}"
+                                                   :disabled="(papelModulos[papelSel] || []).includes('{{ $key }}')"
+                                                   {{ in_array($key, $m['extras']) ? 'checked' : '' }}
+                                                   class="rounded border-border text-spark focus:ring-spark disabled:opacity-50">
+                                            <span class="text-sm text-void flex-1">{{ $def['label'] }}</span>
+                                            <span x-show="(papelModulos[papelSel] || []).includes('{{ $key }}')"
+                                                  class="text-[10px] text-muted">via papel</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="flex gap-3 mt-2">
+                                <button type="button" @click="editandoId = null"
+                                        class="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-muted hover:text-void transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 px-4 py-2.5 rounded-lg bg-spark text-white text-sm font-medium hover:bg-spark/90 transition-colors">
+                                    Salvar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </template>
+        @endforeach
 
         {{-- ============================================================ --}}
         {{-- MODAL: CANCELAR ASSINATURA --}}
@@ -861,32 +959,36 @@
              x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
              @click="sheetMembroId = null"
              class="fixed inset-0 z-40 md:hidden" style="background:rgba(0,0,0,0.5);"></div>
-        <div x-show="sheetMembroId !== null" x-cloak
-             x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
-             class="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl px-4 pb-8 pt-3 md:hidden" style="background:#fff;">
-            <div class="flex justify-center mb-3">
-                <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
+
+        @foreach($membros as $m)
+            <div x-show="sheetMembroId === {{ $m['id'] }}" x-cloak
+                 x-transition:enter="transition ease-out duration-250" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+                 x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
+                 class="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl px-4 pb-8 pt-3 md:hidden" style="background:#fff;">
+                <div class="flex justify-center mb-3">
+                    <div class="w-10 h-1 rounded-full" style="background:rgba(0,0,0,0.1);"></div>
+                </div>
+                <p class="text-center font-semibold text-void text-sm mb-1">{{ $m['nome'] }}</p>
+                <p class="text-center text-xs text-muted mb-4">{{ $m['papel'] ?? '—' }}</p>
+                <div class="space-y-2">
+                    <button @click="sheetMembroId = null; editandoId = {{ $m['id'] }}"
+                            class="w-full py-3 rounded-xl text-sm font-semibold text-spark transition-colors"
+                            style="border:1px solid var(--color-border);background:var(--color-surface);">
+                        Editar acesso
+                    </button>
+                    <button type="submit" form="toggle-form-{{ $m['id'] }}"
+                            onclick="return confirm('{{ $m['ativo'] ? 'Desativar' : 'Ativar' }} {{ $m['nome'] }}?')"
+                            class="w-full py-3 rounded-xl text-sm font-semibold text-white"
+                            style="background:#ef4444;">
+                        {{ $m['ativo'] ? 'Desativar' : 'Ativar' }}
+                    </button>
+                    <button @click="sheetMembroId = null"
+                            class="w-full py-3 rounded-xl text-sm font-medium text-muted transition-colors">
+                        Cancelar
+                    </button>
+                </div>
             </div>
-            <p class="text-center font-semibold text-void text-sm mb-1" x-text="membroSheet().nome"></p>
-            <p class="text-center text-xs text-muted mb-4" x-text="papelLabel(membroSheet().papel)"></p>
-            <div class="space-y-2">
-                <button @click="salvar('membro'); sheetMembroId = null"
-                        class="w-full py-3 rounded-xl text-sm font-semibold text-spark transition-colors"
-                        style="border:1px solid var(--color-border);background:var(--color-surface);">
-                    Editar papel
-                </button>
-                <button @click="salvar('membro'); sheetMembroId = null"
-                        class="w-full py-3 rounded-xl text-sm font-semibold text-white"
-                        style="background:#ef4444;">
-                    Desativar
-                </button>
-                <button @click="sheetMembroId = null"
-                        class="w-full py-3 rounded-xl text-sm font-medium text-muted transition-colors">
-                    Cancelar
-                </button>
-            </div>
-        </div>
+        @endforeach
 
         {{-- Toast --}}
         <div x-show="toastVisible"
@@ -913,35 +1015,18 @@
 
                 conta:       {},
                 plataforma:  { oficina: {}, horario: [], os_config: {}, portal: {} },
-                membros:     [],
                 assinatura:  { cartao: {}, faturas: [], recursos: [] },
+                papelModulos: {},
 
                 modalFuncAberto: false,
                 modalUpgradeAberto: false,
                 modalCancelarAberto: false,
                 sheetMembroId: null,
-                func: { nome: '', email: '', papel: '' },
+                editandoId: null,
 
                 toastVisible: false,
                 toastMsg:     '',
                 _toastTimer:  null,
-
-                papelCores: {
-                    dono:       '#7C3AED',
-                    gerente:    '#3B82F6',
-                    mecanico:   '#F59E0B',
-                    recepcao:   '#06B6D4',
-                    financeiro: '#10B981',
-                    vendedor:   '#EC4899',
-                },
-                papelLabels: {
-                    dono:       'Dono',
-                    gerente:    'Gerente',
-                    mecanico:   'Mecânico',
-                    recepcao:   'Recepção',
-                    financeiro: 'Financeiro',
-                    vendedor:   'Vendedor',
-                },
 
                 init() {
                     const c = window.__config;
@@ -952,15 +1037,8 @@
                         os_config: c.os_config,
                         portal:    c.portal,
                     };
-                    this.membros    = c.equipe.membros || [];
-                    this.assinatura = c.assinatura;
-                },
-
-                papelCor(papel)   { return this.papelCores[papel]  || '#94A3B8'; },
-                papelLabel(papel) { return this.papelLabels[papel] || papel; },
-
-                membroSheet() {
-                    return this.membros.find(m => m.id === this.sheetMembroId) || {};
+                    this.assinatura   = c.assinatura;
+                    this.papelModulos = window.__papelModulos || {};
                 },
 
                 salvar(contexto) {
@@ -972,23 +1050,8 @@
                         horario:        'Horário salvo!',
                         os:             'Configurações de OS salvas!',
                         portal:         'Configurações do portal salvas!',
-                        membro:         'Membro atualizado!',
                     };
                     this.mostrarToast(msgs[contexto] || 'Configurações salvas!');
-                },
-
-                cadastrarFuncionario() {
-                    if (!this.func.nome || !this.func.email || !this.func.papel) return;
-                    this.membros.push({
-                        id:     Date.now(),
-                        nome:   this.func.nome.trim(),
-                        email:  this.func.email.trim(),
-                        papel:  this.func.papel,
-                        status: 'ativo',
-                    });
-                    this.modalFuncAberto = false;
-                    this.mostrarToast(this.func.nome.trim() + ' cadastrado como ' + this.papelLabel(this.func.papel) + '!');
-                    this.func = { nome: '', email: '', papel: '' };
                 },
 
                 cancelarAssinatura() {

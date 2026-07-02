@@ -50,23 +50,6 @@ class MockConfiguracaoService
                     'novo_funcionario'    => true,
                 ],
             ],
-            'equipe' => [
-                'pendentes' => [
-                    [
-                        'id'    => 101,
-                        'nome'  => 'Lucas Martins',
-                        'email' => 'lucas@email.com',
-                        'data'  => '2026-06-17',
-                    ],
-                ],
-                'membros' => [
-                    ['id' => 1,  'nome' => 'Gabriel Peixoto',  'email' => 'gabriel@autocenterpremium.com.br', 'papel' => 'dono',       'status' => 'ativo'],
-                    ['id' => 2,  'nome' => 'Marcos Ferreira',  'email' => 'marcos@autocenterpremium.com.br',  'papel' => 'mecanico',   'status' => 'ativo'],
-                    ['id' => 3,  'nome' => 'João Oliveira',    'email' => 'joao@autocenterpremium.com.br',    'papel' => 'mecanico',   'status' => 'ativo'],
-                    ['id' => 4,  'nome' => 'Carla Souza',      'email' => 'carla@autocenterpremium.com.br',   'papel' => 'recepcao',   'status' => 'ativo'],
-                    ['id' => 5,  'nome' => 'Paulo Henrique',   'email' => 'paulo@autocenterpremium.com.br',   'papel' => 'financeiro', 'status' => 'ativo'],
-                ],
-            ],
             'assinatura' => [
                 'plano'      => 'Profissional',
                 'status'     => 'ativo',
